@@ -1,0 +1,71 @@
+===========================================================
+
+	NATAS - LEVEL 5
+
+===========================================================
+
+
+
+[+] VULENRABILITA
+
+	Insecure Session Management via Predictable Cookie
+	Value
+
+
+[+] EXPLOIT
+
+	Analizzando le richieste HTTP, è stata individuata la
+	presenza di un cookie denominato loggedin.
+	
+	È stato osservato che il server assegna a questo
+	cookie il valore 0 per gli utenti non autenticati.
+
+	Sfruttando la natura manipolabile dei cookie lato cli-
+	ent, è stato modificato manualmente il valore del
+	cookie loggedin da 0 a 1.
+	
+	Effettuando un nuovo refresh della pagina, il server
+	ha interpretato il valore 1 come prova di un'autenti-
+	cazione avvenuta, concedendo l'accesso alla risorsa
+	protetta e rivelando la password per il livello
+	successivo.
+
+
+[+] NOTE
+
+	La vulnerabilità risiede nel fatto che il server si
+	affida a un valore prevedibile e modificabile dall'
+	utente per determinare lo stato di autenticazione del-
+	la sessione.
+	I cookie utilizzati per gestire l'accesso o l'identità
+	dell'utente devono seguire rigorosi standard di sicu-
+	rezza:
+
+		- Imprevedibilità (Entropy)
+			Il valore del cookie non deve essere un sem-
+			plice numero ma un token casuale ad alta en-
+			tropia generato dal server e memorizzato in
+			un database.
+
+		- Flag HttpOnly: Per prevenire attacchi di tipo
+			XSS, i cookie di sessione devono essere im-
+			postati con il flag HttpOnly, rendendoli in-
+			accessibili agli script JavaScript.
+
+		- Flag Secure: I cookie devono essere trasmessi
+			esclusivamente su canali criptati utilizzando
+			il flag Secure, forzando l'invio solo tramite
+			protocollo HTTPS.
+
+		- Validazione Server-Side: Lo stato di "logged in"
+			non deve mai essere gestito solo tramite un
+			valore nel cookie, ma deve essere verificato
+			lato server attraverso una sessione valida e
+			protetta.
+
+	
+[+] CODICE DI ACCESSO
+
+	7mhjtShJAcld2NYbKHEadnhEwRn2P8VT
+
+==========================================================

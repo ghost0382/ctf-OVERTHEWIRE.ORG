@@ -1,0 +1,97 @@
+--------------------------------------------------------------------------
+# DEFINIZINOE VARIABILI                                                 #
+--------------------------------------------------------------------------
+
+$defaultdata = array( "showpassword"=>"no", "bgcolor"=>"#ffffff");
+
+
+
+# NOTE:
+    
+    Array associato che presenta valori di tipo CHIAVE=>VALORE
+--------------------------------------------------------------------------
+
+
+
+
+--------------------------------------------------------------------------
+# FUNZIONE XOR                                                          #
+--------------------------------------------------------------------------
+function xor_encrypt($in) {
+    $key = '<censored>';
+    $text = $in;
+    $outText = '';
+
+    // Iterate through each character
+    for($i=0;$i<strlen($text);$i++) {
+    $outText .= $text[$i] ^ $key[$i % strlen($key)];
+    }
+
+    return $outText;
+}
+
+
+
+# NOTE:
+    Questa funzione si occupa di criptare i dati tramite una variabile $key e
+    il $text passato come argomento $in. 
+    $outText e' la stringa che viene composta char per char.
+--------------------------------------------------------------------------
+
+
+
+
+
+--------------------------------------------------------------------------
+# FUNZIONE LOAD_DATA
+--------------------------------------------------------------------------
+function loadData($def) {
+    global $_COOKIE;
+    $mydata = $def;
+    if(array_key_exists("data", $_COOKIE)) {
+    $tempdata = json_decode(xor_encrypt(base64_decode($_COOKIE["data"])), true);
+    if(is_array($tempdata) && array_key_exists("showpassword", $tempdata) && array_key_exists("bgcolor", $tempdata)) {
+        if (preg_match('/^#(?:[a-f\d]{6})$/i', $tempdata['bgcolor'])) {
+        $mydata['showpassword'] = $tempdata['showpassword'];
+        $mydata['bgcolor'] = $tempdata['bgcolor'];
+        }
+    }
+    }
+    return $mydata;
+}
+
+
+
+# NOTE:
+    Questa funzione recupera la variabile gloable $_COOKIE e un $mydata impostato all'argomento $def.
+
+    $tempdata viene usato per memorizzare il cookie:
+        > $_COOKIE["data"] viene decodificato da base64
+        > il risultato > decodificato applicando XOR + key
+        > il risultato > decodificato in JSON + restituisce array associativo (chiave, valore)
+
+    Infine, se c'e' un match dell'array associativo, aggiunge i risultati decriptati alla
+    variabile $mydata.
+--------------------------------------------------------------------------
+
+
+
+
+
+--------------------------------------------------------------------------
+# FUNZIONE SAVE_DATA
+--------------------------------------------------------------------------
+function saveData($d) {
+    setcookie("data", base64_encode(xor_encrypt(json_encode($d))));
+}
+
+
+# NOTE:
+    Questa e' la funzione inversa rispetto a loadData.
+    Crea e invia un cookie con setcookie chiamato "data" attraverso
+    queste codifiche:
+        - json
+        - xor
+        - base64 (per trasportarlo)
+--------------------------------------------------------------------------
+

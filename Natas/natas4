@@ -1,0 +1,69 @@
+===========================================================
+
+	NATAS - LEVEL 4
+
+===========================================================
+
+
+
+[+] VULENRABILITA
+
+	Authentication Bypass via HTTP Referer Header
+	Manipulation
+
+
+[+] EXPLOIT
+
+	L'analisi della risposta del server ha rivelato che l'
+	accesso alle informazioni sensibili è subordinato alla
+	verifica dell'header HTTP Referer. 
+	
+	Il server accetta la richiesta solo se l'utente pro-
+	viene da una pagina specifica,
+	(http://natas5.natas.labs.overthewire.org/).
+
+	Poiché gli header HTTP sono completamente controllabi-
+	li dall'utente, la misura di sicurezza è stata bypas-
+	sata attraverso la manipolazione della richiesta.
+
+	L'operazione è stata eseguita in due modalità:
+
+    - Intercettazione con Proxy (Burp Suite):
+		La richiesta è stata intercettata e il Referer
+		è stato modificato manualmente prima di essere
+		inviato al server.
+
+	- Utilizzo di Command Line Tools (cURL):
+		È stata inviata una richiesta specifica forzando
+		l'header desiderato tramite:
+			- flag --referer/-e	: referrer link
+			- flag -u			: user:password
+
+
+
+[+] NOTE
+
+	L'utilizzo dell'header Referer come metodo di autenti-
+	cazione o controllo degli accessi è una pratica di si-
+	curezza gravemente errata.
+	L'header Referer è puramente informativo e può essere
+	facilmente falsificato, rimosso o manipolato da
+	qualsiasi client (browser, script o tool di proxy).
+
+	Questa vulnerabilità rientra nella categoria più ampia
+	di Insecure Direct Object References (IDOR) o Broken
+	Access Control, dove il server si affida a informazio-
+	ni non verificate provenienti dal client per concedere
+	l'accesso a risorse protette.
+	
+	La soluzione corretta consiste nell'implementare un
+	sistema di sessioni basato su token sicuri
+	(come i cookie HTTP-only) o l'autenticazione basata su
+	server-side.
+
+	
+[+] CODICE DI ACCESSO
+
+	e4z2Noy3oqwPJUWzJH0dseN67Cn1sy2M
+
+==========================================================

@@ -1,0 +1,67 @@
+===========================================================
+
+	NATAS - LEVEL 3
+
+===========================================================
+
+
+
+[+] VULENRABILITA
+
+	Information Disclosure via robots.txt &
+	Directory Listing
+	
+
+[+] EXPLOIT
+
+	Durante l'analisi del codice sorgente HTML della pagi-
+	na, è stato rinvenuto un commento che suggeriva l'
+	esistenza di misure volte a impedire l'indicizzazione
+	di alcune aree del sito da parte dei motori di
+	ricerca.
+
+	Sulla base di questo indizio, è stata effettuata una
+	richiesta al file /robots.txt, uno standard utilizzato
+	per istruire i crawler (spider) su quali percorsi non
+	debbano essere indicizzati.
+	All'interno del file è stata individuata una direttiva
+	
+		Disallow: /s3cr3ts/
+		
+	che ha rivelato l'esistenza di una directory nascosta.
+
+	Accedendo manualmente alla directory /s3cr3ts/, è
+	emerso che il server ha il Directory Listing attivo.
+	Questo ha permesso l'enumerazione del contenuto della
+	cartella, portando all'individuazione del file
+	users.txt, contenente le credenziali per l'utente
+	natas4.
+
+
+[+] NOTE
+
+	Il file robots.txt non è uno strumento di sicurezza,
+	ma una guida per i bot benevoli.
+	
+	Poiché è un file accessibile pubblicamente a chiunque,
+	l'inserimento di percorsi sensibili al suo interno
+	produce l'effetto opposto a quello desiderato:
+	invece di nascondere le directory, ne segnala la pre-
+	senza a potenziali attaccanti.
+
+	Inoltre, è fondamentale ricordare che i crawler male-
+	voli o gli utenti umani ignorano completamente le
+	direttive Disallow.
+	
+	Per proteggere l'accesso a directory sensibili, è
+	necessario implementare un vero e proprio Controllo
+	degli Accessi (Access Control) a livello di server
+	o applicativo, richiedendo l'autenticazione per
+	l'accesso a tali risorse.
+	
+
+[+] CODICE DI ACCESSO
+	
+	JDrPnuZAKyl6MkiqQGFIddrqpvgOASth
+
+===========================================================

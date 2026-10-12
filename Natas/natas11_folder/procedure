@@ -1,0 +1,40 @@
+1. Ecco il cyphertext (C).
+
+        EGAgHwQ1IxYYMSQYGSZxTUksPFVHYDEQCC0%2FGBlgaVVIJDURDSQ1VRY%3D
+
+
+2. Decodifica di C da formato URL a formato Base64
+
+        EGAgHwQ1IxYYMSQYGSZxTUksPFVHYDEQCC0/GBlgaVVIJDURDSQ1VRY=
+
+
+3. Decodifica di C da Base64 a Bin -> il risultato in Hex (per comodita')
+
+        1060201f04352316183124181926714d492c3c5547603110082d3f1819606955482435110d24355516
+
+
+4. Ecco il plain text (P).
+
+        {"showpassword":"no","bgcolor":"#ffffff"}
+
+
+5. Plaintext (P) XOR Cyphertext (C) = key
+
+        1060201f04352316183124181926714d492c3c5547603110082d3f1819606955482435110d24355516
+        XOR
+        {"showpassword":"no","bgcolor":"#ffffff"}
+        =
+        kBSwkBSwkBSwkBSwkBSwkBSwkBSwkBSwkBSwkBSwk
+        =
+        kBSw
+
+
+6. Manipolazione del campo: "showpassword":"yes"
+
+7. Generazione del cookie con XOR + key -> il risultato in Base64 -> il risultato in URL
+
+        EGAgHwQ1IxYYMSQYGSZxTUk7NgRJbnEVDCE8GwQwcU1JYTURDSQ1EUk/
+
+        
+
+        

@@ -1,0 +1,66 @@
+===========================================================
+
+	NATAS - LEVEL 1
+
+===========================================================
+
+
+
+[+] VULENRABILITA
+
+	Information Disclosure via HTML Comments &
+	Client-Side Access Control Bypass
+
+
+[+] EXPLOIT
+
+	L'analisi del codice sorgente della pagina ha rivelato
+	la presenza di credenziali sensibili inserite all'
+	interno di un commento HTML nel tag <body>.
+
+	Per l'estrazione delle informazioni è stato necessario
+	superare un meccanismo di blocco basato su JavaScript,
+	progettato per impedire l'apertura del menu contestuale
+	(tasto destro) su elementi specifici della pagina
+	(banner centrale) tramite l'attivazione di un alert di
+	avviso.
+
+	Il blocco è stato bypassato utilizzando metodi di is-
+	pezione alternativi che ignorano le restrizioni lato
+	client:
+
+    - CTRL + U per l'accesso diretto al sorgente
+    - Protocollo view-source
+    - Interazione con aree della pagina non soggette all'
+	  evento JavaScript di blocco.
+
+	Una volta ottenuto l'accesso al codice sorgente,
+	è stata recuperata la password per il livello successivo.
+
+
+[+] NOTE
+
+	L'implementazione di blocchi JavaScript per impedire
+	la visualizzazione del codice sorgente è un esempio di
+	Security by Obscurity.
+	Questo approccio non fornisce alcuna sicurezza reale,
+	poiché il codice HTML/JS viene comunque scaricato
+	interamente dal server al browser dell'utente prima di
+	essere renderizzato.
+
+	Qualsiasi controllo implementato esclusivamente lato
+	client può essere facilmente aggirato, disattivando
+	JavaScript nel browser o utilizzando strumenti di
+	intercettazione del traffico (come Burp Suite o i
+	Developer Tools di Firefox/Chrome).
+	
+	La misura corretta di sicurezza consiste nel non inse-
+	rire mai informazioni sensibili nel codice inviato al
+	client.
+	
+	
+[+] CODICE DI ACCESSO
+
+	vsDOxoXyq3wckCP1ZmTZ71ngIA606odB
+
+==========================================================

@@ -1,0 +1,66 @@
+===========================================================
+
+	NATAS - LEVEL 6
+
+===========================================================
+
+
+
+[+] VULENRABILITA
+
+	Information Disclosure via Source Code Exposure
+	(Sensitive File Leak)
+
+[+] EXPLOIT
+
+	Analizzando il codice sorgente della pagina principale
+	è stata individuata l'istruzione PHP include "includes
+	/secret.inc";.
+	Tale riga indica che l'applicazione carica un file di
+	configurazione esterno per gestire la logica di vali-
+	dazione del form.
+
+	L'accesso diretto all'URL alla directory includes/..
+	../secret.inc, è stato possibile.
+	L'ispezione del codice sorgente ha rivelato il conte-
+	nuto dello script PHP, inclusa la definizione della
+	variabile $secret.
+
+	Utilizzando il valore estratto della variabile $secret
+	come input nel form della pagina principale, è stato
+	possibile soddisfare la condizione di validazione del
+	server e ottenere la password per il livello natas7.
+
+
+[+] NOTE
+
+	Questa vulnerabilità si verifica quando file contenen-
+	ti logica di business o segreti (come .inc o .env)
+	sono posizionati in directory accessibili via HTTP
+	senza che il server sia configurato per bloccarne
+	l'accesso.
+
+	Per mitigare questo rischio, è necessario:
+
+		- Spostare i file sensibili
+			Posizionare i file di .inc e .env al di fuori
+			della directory root del server web (web root)
+			rendendoli inaccessibili tramite URL.
+
+		- Configurazione del Server
+			Configurare il server web (Apache/Nginx) per
+			negare l'accesso a specifici file o estensioni
+			(es. .inc, .log, .sql).
+
+		- Principio del Minimo Privilegio
+			Assicurarsi che i permessi dei file sul file
+			system siano impostati in modo che solo l'
+			utente del server web possa leggerli, impeden-
+			do l'esposizione accidentale.
+
+
+[+] CODICE DI ACCESSO
+
+	B1szg95UcTnrzwnF3i3TzYHlyYh8iBV0
+
+==========================================================

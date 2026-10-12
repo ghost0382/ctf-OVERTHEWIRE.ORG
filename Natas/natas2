@@ -1,0 +1,56 @@
+===========================================================
+
+	NATAS - LEVEL 2
+
+===========================================================
+
+
+
+[+] VULENRABILITA
+
+	Information Disclosure via Directory Listing (Indexing)
+
+
+[+] EXPLOIT
+
+	Durante la fase di analisi del codice sorgente (HTML)
+	della pagina principale, è stata individuata una
+	risorsa (pixel.png) ospitata all'interno della direc-
+	tory /files/.
+
+	Effettuando una richiesta HTTP diretta alla directory
+	/files/, è emerso che il server ha la funzione di
+	Directory Indexing attiva.
+	
+	Questo ha permesso l'enumerazione di tutti i file con-
+	tenuti nella cartella, rivelando la presenza di un
+	file non linkato pubblicamente denominato users.txt.
+
+	L'accesso a tale file ha permesso l'estrazione di cre-
+	denziali sensibili (username e password) relative all'
+	utente natas3.
+
+
+[+] NOTE
+
+	Questa vulnerabilità è causata da una configurazione
+	errata del server web (misconfiguration), che permette
+	l'elencazione dei contenuti di una directory in assen-
+	za di un file indice (es. index.html).
+
+	L'analisi ha inoltre permesso di identificare la ver-
+	sione del server web tramite l'header di risposta HTTP
+	(Banner Grabbing).
+	
+	L'acquisizione di queste informazioni di intelligence
+	è critica, poiché consente l'identificazione di vulne-
+	rabilità note (CVE) specifiche per quella versione del
+	software, facilitando l'individuazione di exploit
+	mirati.
+	
+	
+[+] CODICE DI ACCESSO
+
+	K30JrSRHzjxq3paUQuwozY4MNvmNFyhI
+
+===========================================================

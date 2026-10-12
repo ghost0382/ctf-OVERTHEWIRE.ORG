@@ -1,0 +1,50 @@
+===========================================================
+
+	NATAS - LEVEL 0
+
+===========================================================
+
+
+
+[+] VULENRABILITA
+
+	Information Disclosure via HTML Comments
+
+
+[+] EXPLOIT
+
+	Durante la fase di analisi statica della pagina, è
+	stata effettuata l'ispezione del codice sorgente HTML.
+
+	All'interno del tag <body>, è stato individuato un
+	commento HTML (<!-- ... -->) contenente informazioni
+	sensibili.
+	L'analisi di tale commento ha permesso di recuperare
+	in chiaro le credenziali di accesso (password) per
+	l'utente del livello successivo.
+
+
+[+] NOTE
+
+	Questa vulnerabilità è classificata come una falla di
+	sicurezza di tipo "Information Disclosure".
+	Si verifica quando gli sviluppatori lasciano note,
+	commenti di debug o credenziali all'interno del codice
+	che viene inviato al client (browser).
+
+	Poiché il codice HTML è visibile a chiunque tramite la
+	funzione "Visualizza sorgente pagina", qualsiasi dato
+	inserito nei commenti deve essere considerato pubbli-
+	co.
+	Per prevenire questo rischio, è fondamentale implemen-
+	tare un processo di code review o utilizzare strumenti
+	di minificazione del codice che rimuovano automatica-
+	mente i commenti prima della pubblicazione in ambiente
+	di produzione.
+	
+	
+[+] CODICE DI ACCESSO
+
+	scfWG6qNEIdzqVyfRwEGXyNUfFZkZeQ7
+
+==========================================================
