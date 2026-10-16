@@ -1,6 +1,6 @@
 ===========================================================
 
-	NATAS - LEVEL 
+	NATAS - LEVEL 7
 
 ===========================================================
 
@@ -8,9 +8,57 @@
 
 [+] VULENRABILITA
 
+Local File Inclusion (LFI) tramite il parametro page
+
+
 [+] EXPLOIT
 
+Durante la navigazione tra la home page e la pagina infor-
+mativa, è stato osservato che le richieste inviate all’
+applicazione contenevano parametri come:
+	
+	- ?page=home
+	- ?page=about
+
+L’ispezione del codice sorgente ha rivelato un commento con
+il percorso del file contenente la password di Natas 8:
+	
+	/etc/natas_webpass/natas8.
+
+Modificando il valore del parametro page e inserendo il per-
+corso del file:
+
+	?page=/etc/natas_webpass/natas8
+
+è stato possibile ottenere il contenuto del file nella ris-
+posta del server e recuperare la password del livello
+successivo.
+
+
 [+] NOTE
+
+Il parametro page consente di specificare una risorsa locale
+utilizzata dall’applicazione.
+
+Poiché il valore fornito non è adeguatamente limitato, è
+possibile richiedere file presenti nel filesystem del server.
+Questo comportamento è classificabile come
+Local File Inclusion (LFI).
+
+In questo caso è stato specificato direttamente un percorso
+assoluto; non si tratta quindi, in senso stretto, di path
+traversal, che consiste nell’attraversare directory tramite
+sequenze come ../.
+
+La vulnerabilità può esporre file riservati accessibili al
+processo web. Per prevenirla, è consigliabile accettare
+solo valori predefiniti — ad esempio home e about — e
+associarli lato server ai contenuti corrispondenti.
+
+È inoltre opportuno configurare i permessi dei file
+sensibili in modo che non siano leggibili dall’applicazione
+web.
+
 
 [+] CODICE DI ACCESSO
 
