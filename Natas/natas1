@@ -33,6 +33,7 @@
     - Protocollo view-source
     - Interazione con aree della pagina non soggette all'
 	  evento JavaScript di blocco.
+	- Modifica del codice JavaScript
 
 	Una volta ottenuto l'accesso al codice sorgente,
 	è stata recuperata la password per il livello successivo.
