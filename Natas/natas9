@@ -1,19 +1,154 @@
 ===========================================================
 
-	NATAS - LEVEL 
+	NATAS - LEVEL 9
 
 ===========================================================
 
 
 
-[+] VULENRABILITA
+[+] VULNERABILITÀ
+
+	OS Command Injection via Unsanitized User Input
+
 
 [+] EXPLOIT
 
+	Analizzando il codice sorgente PHP, reso disponibile
+	dal livello, è stata individuata la funzione
+	passthru(), utilizzata per eseguire un comando di
+	sistema e mostrarne l'output direttamente nella
+	risposta HTTP.
+
+	Il codice vulnerabile è il seguente:
+
+		<?
+		$key = "";
+		
+		if(array_key_exists("needle", $_REQUEST)) {
+		    $key = $_REQUEST["needle"];
+		}
+		
+		if($key != "") {
+		    passthru("grep -i $key dictionary.txt");
+		}
+		?>
+
+	L'analisi ha evidenziato che il valore del parametro
+	needle viene concatenato direttamente al comando
+	grep, senza alcuna validazione o neutralizzazione
+	dei caratteri speciali interpretati dalla shell.
+	
+	Di conseguenza, è stato possibile modificare la
+	struttura del comando originale mediante l'inseri-
+	mento di un separatore di comandi.
+	
+	Utilizzando il seguente input nel form:
+
+		; cat /etc/natas_webpass/natas10
+
+	è stato possibile interrompere l'esecuzione logica
+	del comando grep e richiedere alla shell l'esecuzione
+	di un ulteriore comando, finalizzato alla lettura del
+	file contenente la password del livello successivo.
+	
+	Il percorso del file è stato individuato sulla base
+	delle informazioni apprese nei livelli precedenti,
+	nei quali viene indicata la directory utilizzata
+	per memorizzare le password degli utenti Natas.
+	
+	L'esecuzione del comando ha consentito di visualiz-
+	zare il contenuto del file e recuperare la password
+	necessaria per accedere al livello successivo.
+	
+	
 [+] NOTE
+
+	La vulnerabilità consiste nell'esecuzione di comandi
+	arbitrari sul sistema operativo attraverso un'appli-
+	cazione web che incorpora input controllabile
+	dall'utente all'interno di un comando di sistema.
+	
+	Questa tipologia di attacco è denominata OS Command
+	Injection ed è riconducibile alla categoria CWE-78:
+	Improper Neutralization of Special Elements used in
+	an OS Command.
+	
+	La causa principale è l'assenza di una separazione
+	sicura tra i dati forniti dall'utente e le istruzioni
+	eseguite dalla shell.
+	
+		- Funzione passthru()
+			La funzione PHP passthru() esegue un comando
+			esterno e inoltra il relativo output.
+			Il suo utilizzo diventa pericoloso quando
+			parti del comando vengono costruite mediante
+			concatenazione diretta di input non fidato.
+	
+		- Command Injection
+			La shell interpreta alcuni caratteri come
+			istruzioni di controllo, anziché come
+			semplici dati.
+			Il punto e virgola (;) permette di separare
+			comandi distinti, consentendo l'esecuzione
+			di un'istruzione aggiuntiva indipendente
+			dal comando precedente.
+	
+		- Abuso dei privilegi del processo
+			I comandi iniettati vengono eseguiti con i
+			privilegi dell'utente con cui opera il
+			processo web.
+			Le conseguenze dipendono quindi dai per-
+			messi disponibili e possono includere la
+			lettura di file riservati, l'accesso a
+			credenziali e la compromissione di altre
+			risorse del sistema.
+	
+		- Esfiltrazione di informazioni
+			In questo caso, la vulnerabilità permette
+			di leggere un file contenente una password
+			e di restituirne il contenuto nella risposta
+			HTTP.
+			Il problema non riguarda soltanto l'esecu-
+			zione di comandi arbitrari, ma anche la
+			possibile esposizione di informazioni sensibili
+			accessibili all'utente del processo web.
+	
+		- Validazione e gestione dell'input
+			La semplice rimozione di alcuni caratteri
+			speciali non costituisce una protezione
+			affidabile, poiché esistono differenti
+			operatori e modalità di interpretazione
+			dei comandi da parte della shell.
+			La validazione deve essere specifica per
+			il contesto e non deve sostituire una
+			corretta progettazione dell'esecuzione.
+	
+		- Misure Preventive
+			È preferibile evitare l'esecuzione di comandi
+			di sistema quando esistono funzioni PHP
+			native in grado di svolgere la stessa
+			operazione.
+			Quando l'esecuzione esterna è necessaria,
+			occorre evitare la concatenazione di input
+			non fidato, utilizzare API che separino
+			gli argomenti dal comando ed effettuare
+			un'adeguata validazione dei dati.
+			È inoltre opportuno applicare il principio
+			del minimo privilegio al processo web,
+			limitando l'accesso ai file contenenti
+			credenziali e altre informazioni riservate.
+	
+	La lezione principale del livello è che l'input
+	utente non deve mai essere interpretato come parte
+	di un comando eseguibile senza adeguate protezioni.
+	Anche un semplice campo di ricerca può diventare
+	un vettore di compromissione del sistema quando
+	l'applicazione delega operazioni alla shell in
+	modo insicuro.
+	
 
 [+] CODICE DI ACCESSO
 
 	EgjlkzB6E8LJyf2Obt4q7q4ewt5ZWSNv
-	
-==========================================================
+
+===========================================================
