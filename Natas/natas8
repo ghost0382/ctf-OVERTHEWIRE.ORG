@@ -1,19 +1,136 @@
 ===========================================================
 
-	NATAS - LEVEL 
+NATAS - LEVEL 8
+
 
 ===========================================================
 
 
 
-[+] VULENRABILITA
+[+] VULNERABILITÀ
+
+	Sensitive Information Exposure via Reversible Encoding
+
 
 [+] EXPLOIT
 
+	Analizzando il codice sorgente PHP, accessibile tra-
+	mite l'apposito collegamento, è stata individuata la
+	variabile $encodedSecret, contenente il valore codi-
+	ficato del segreto richiesto per l'autenticazione.
+
+	L'analisi della funzione encodeSecret() ha permesso
+	di identificare la sequenza di operazioni applicate
+	al valore originale:
+
+		- base64_encode(): codifica il dato in Base64.
+		- strrev(): inverte l'ordine dei caratteri.
+		- bin2hex(): converte il risultato in esadecimale.
+
+	Per recuperare il segreto è stato ricostruito il pro-
+	cedimento inverso, applicando le operazioni nell'or-
+	dine opposto:
+
+		- hex2bin(): riconverte la stringa esadecimale.
+		- strrev(): ripristina l'ordine dei caratteri.
+		- base64_decode(): recupera il valore originale.
+
+	Il procedimento è stato implementato mediante le
+	seguenti istruzioni PHP:
+
+		$secret = base64_decode(
+		    strrev(
+		        hex2bin($encodedSecret)
+		    )
+		);
+
+	L'esecuzione delle operazioni ha restituito il valore
+	originale del segreto:
+
+		oubWYf2kBq
+
+	Il valore recuperato è stato inserito nel form della
+	pagina e inviato al server tramite una richiesta HTTP
+	POST. La verifica è stata superata e il server ha
+	restituito la password necessaria per accedere al
+	livello successivo.
+
+
 [+] NOTE
+
+	Il livello evidenzia i rischi associati all'utilizzo
+	di algoritmi di codifica reversibili per la gestione
+	di informazioni sensibili. L'analisi del codice sor-
+	gente consente di individuare le trasformazioni ap-
+	plicate al segreto e di ricostruire il procedimento
+	necessario per recuperare il valore originale.
+
+	La vulnerabilità è riconducibile a una protezione
+	inadeguata delle informazioni sensibili. È importante
+	distinguere tra codifica, cifratura crittografica e
+	hashing, poiché queste tecniche offrono proprietà di
+	sicurezza differenti.
+
+	- Encoding (Codifica)
+		Consiste nella trasformazione dei dati in
+		una rappresentazione differente, ad esempio
+		attraverso Base64 o conversioni esadecimali.
+		Non garantisce la riservatezza delle informa-
+		zioni e può essere invertita senza una chiave
+		crittografica segreta.
+
+	- Reversible Encoding (Codifica Reversibile)
+		Quando una sequenza di trasformazioni è
+		conosciuta, le operazioni possono essere
+		invertite applicando le funzioni corrispon-
+		denti nell'ordine opposto.
+		In questo livello, la combinazione di
+		bin2hex(), strrev() e base64_encode() non
+		protegge il segreto da chi può analizzare
+		il codice sorgente.
+
+	- Reverse Engineering
+		Consiste nell'analisi del funzionamento di
+		un sistema a partire dal codice o dal suo
+		comportamento osservabile.
+		In ambito web security, permette di indivi-
+		duare controlli di sicurezza deboli, algoritmi
+		utilizzati e procedure necessarie a ripro-
+		durre o invertire una trasformazione.
+
+	- Encryption (Cifratura)
+		Protegge la riservatezza dei dati attraverso
+		algoritmi crittografici e chiavi appropriate.
+		Quando è necessario conservare un segreto
+		recuperabile, deve essere utilizzata una
+		soluzione crittografica adeguata, con una
+		gestione sicura delle chiavi.
+
+	- Hashing delle Password
+		Le password degli utenti non dovrebbero
+		essere memorizzate mediante semplice codi-
+		fica o cifratura reversibile.
+		È preferibile utilizzare funzioni di hashing
+		specifiche per le password, come Argon2id
+		o bcrypt, con parametri adeguati.
+
+	- Misure Preventive
+		I segreti non devono essere protetti mediante
+		la sola trasformazione del loro formato.
+		È necessario limitare l'accesso al codice
+		sorgente e alle informazioni riservate,
+		impiegando meccanismi di protezione appro-
+		priati alla natura dei dati.
+
+La lezione principale consiste nel comprendere che
+la complessità apparente di una stringa non equivale
+a una protezione crittografica. La sicurezza dipende
+dalle proprietà dei meccanismi utilizzati e dalla
+corretta gestione delle informazioni sensibili.
+
 
 [+] CODICE DI ACCESSO
 
-	UdxmI27dTaXmnd1rxKQTfws6jihTdcQ9
+UdxmI27dTaXmnd1rxKQTfws6jihTdcQ9
 
-==========================================================
+===========================================================
