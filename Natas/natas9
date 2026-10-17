@@ -88,30 +88,17 @@
 			La shell interpreta alcuni caratteri come
 			istruzioni di controllo, anziché come
 			semplici dati.
-			Il punto e virgola (;) permette di separare
-			comandi distinti, consentendo l'esecuzione
-			di un'istruzione aggiuntiva indipendente
-			dal comando precedente.
 	
 		- Abuso dei privilegi del processo
 			I comandi iniettati vengono eseguiti con i
 			privilegi dell'utente con cui opera il
 			processo web.
-			Le conseguenze dipendono quindi dai per-
-			messi disponibili e possono includere la
-			lettura di file riservati, l'accesso a
-			credenziali e la compromissione di altre
-			risorse del sistema.
 	
 		- Esfiltrazione di informazioni
 			In questo caso, la vulnerabilità permette
 			di leggere un file contenente una password
 			e di restituirne il contenuto nella risposta
 			HTTP.
-			Il problema non riguarda soltanto l'esecu-
-			zione di comandi arbitrari, ma anche la
-			possibile esposizione di informazioni sensibili
-			accessibili all'utente del processo web.
 	
 		- Validazione e gestione dell'input
 			La semplice rimozione di alcuni caratteri
@@ -119,28 +106,7 @@
 			affidabile, poiché esistono differenti
 			operatori e modalità di interpretazione
 			dei comandi da parte della shell.
-			La validazione deve essere specifica per
-			il contesto e non deve sostituire una
-			corretta progettazione dell'esecuzione.
-	
-		- Misure Preventive
-			È preferibile evitare l'esecuzione di comandi
-			di sistema quando esistono funzioni PHP
-			native in grado di svolgere la stessa
-			operazione.
-			Quando l'esecuzione esterna è necessaria,
-			occorre evitare la concatenazione di input
-			non fidato, utilizzare API che separino
-			gli argomenti dal comando ed effettuare
-			un'adeguata validazione dei dati.
-			È inoltre opportuno applicare il principio
-			del minimo privilegio al processo web,
-			limitando l'accesso ai file contenenti
-			credenziali e altre informazioni riservate.
-	
-	La lezione principale del livello è che l'input
-	utente non deve mai essere interpretato come parte
-	di un comando eseguibile senza adeguate protezioni.
+
 	Anche un semplice campo di ricerca può diventare
 	un vettore di compromissione del sistema quando
 	l'applicazione delega operazioni alla shell in
