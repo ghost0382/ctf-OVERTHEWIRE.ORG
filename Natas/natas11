@@ -1,16 +1,108 @@
 ===========================================================
 
-	NATAS - LEVEL 
+NATAS - LEVEL 11
 
 ===========================================================
 
 
 
-[+] VULENRABILITA
+[+] VULNERABILITA
+
+	Cookie Tampering via Weak XOR Encryption &
+	Lack of Data Integrity Protection
 
 [+] EXPLOIT
 
+	Analizzando il codice PHP fornito, possiamo notare
+	che l'applicazione memorizza le informazioni relative
+	alla visualizzazione della password e al colore dello
+	sfondo all'interno di un cookie denominato "data".
+	
+	I dati vengono prima convertiti in formato JSON tramite
+	json_encode(), successivamente cifrati con una funzione
+	XOR e infine codificati in Base64.
+	
+	Il processo di decifratura avviene in ordine inverso.
+	In particolare, json_decode() converte la stringa JSON
+	ottenuta dopo la decifratura in un array associativo
+	PHP, permettendo all'applicazione di accedere ai campi
+	showpassword e bgcolor.
+	
+	Il cookie generato contiene inizialmente i valori:
+	
+		{"showpassword":"no","bgcolor":"#ffffff"}
+	
+	Per comprendere il funzionamento della cifratura, e'
+	stato recuperato il cookie inviato dal server:
+	
+		EGAgHwQ1IxYYMSQYGSZxTUksPFVHYDEQCC0%2FGBlgaV
+		VIJDURDSQ1VRY%3D
+	
+	Dopo aver decodificato il valore URL e successivamente
+	il Base64, e' stato ottenuto il testo cifrato in formato
+	binario, rappresentato in esadecimale:
+	
+		1060201f04352316183124181926714d492c3c55476
+		03110082d3f1819606955482435110d24355516
+	
+	Conoscendo sia il testo originale sia quello cifrato,
+	e' stato possibile ricavare la chiave utilizzando
+	la proprieta' reversibile dell'operazione XOR:
+	
+		Plaintext XOR Ciphertext = Key
+	
+	Il risultato ha evidenziato una sequenza ripetuta:
+	
+		kBSwkBSwkBSwkBSwkBSwkBSwkBSwkBSwkBSwkBSwk
+	
+	Da questa sequenza e' stata individuata la chiave
+	effettiva, composta dai quattro caratteri:
+	
+		kBSw
+	
+	Una volta recuperata la chiave, e' stato possibile
+	modificare il valore del campo showpassword da "no"
+	a "yes", mantenendo invariato il campo bgcolor.
+	
+	Il nuovo oggetto JSON e' stato quindi cifrato tramite
+	XOR con la chiave individuata e codificato nuovamente
+	in Base64, ottenendo il seguente valore per il cookie:
+	
+		EGAgHwQ1IxYYMSQYGSZxTUk7NgRJbnEVDCE8GwQwc
+		U1JYTURDSQ1EUk/
+	
+	Sostituendo il cookie originale con quello manipolato,
+	l'applicazione ha accettato i nuovi valori e ha mostrato
+	la password necessaria per accedere al livello natas12.
+
+
 [+] NOTE
 
+	Il livello dimostra come la cifratura non sia sufficiente
+	a garantire la sicurezza dei dati se viene utilizzato
+	un algoritmo debole e ripetitivo.
+	
+	L'operazione XOR possiede una proprieta' interessante:
+	applicandola due volte con la stessa chiave si recupera
+	il dato originale. Inoltre, conoscendo il testo in
+	chiaro e quello cifrato, e' possibile ricavare la chiave
+	utilizzata, come avvenuto in questo esercizio.
+	
+	Un ulteriore problema e' l'assenza di un controllo
+	di integrita': il server accetta i dati del cookie
+	dopo averli decifrati e verificati solo parzialmente,
+	consentendo di modificare campi che dovrebbero essere
+	controllati esclusivamente dall'applicazione.
+	
+	Per prevenire questi attacchi, e' preferibile mantenere
+	le informazioni sensibili lato server. Se e' necessario
+	memorizzare dati nel cookie, occorre utilizzare sistemi
+	crittografici moderni con autenticazione e verifica
+	dell'integrita', impedendo modifiche non autorizzate.
+
+
+[+] CODICE DI ACCESSO
+
+		EAGkE8uzFTxeoTT2mMst9Xy7PX6guEng
 
 ==========================================================
