@@ -1,19 +1,76 @@
 ===========================================================
 
-	NATAS - LEVEL 
+NATAS - LEVEL 10
 
 ===========================================================
 
 
 
-[+] VULENRABILITA
+[+] VULNERABILITA
+
+	OS Command Injection via Unsanitized User Input
+
 
 [+] EXPLOIT
 
+	Come nel precedente livello, analizzando il codice sorgente
+	fornito:
+
+		if($key != "") {
+		    if(preg_match('/[;|&]/',$key)) {
+		        print "Input contains an illegal character!";
+
+	Possiamo notare che, rispetto al livello precedente,
+	viene effettuato un controllo sulla variabile $key
+	per impedire l'utilizzo dei caratteri ';', '|' e '&'.
+	
+	Tuttavia, tale controllo risulta insufficiente, poiche'
+	non impedisce l'utilizzo di altri caratteri speciali
+	della shell, come gli spazi, ne' verifica che l'input
+	rispetti il formato previsto dall'applicazione.
+	
+	Impostando il parametro needle con il valore:
+	
+		. /etc/natas_webpass/natas11
+	
+	e' possibile sfruttare il comportamento del comando
+	grep. Il punto viene interpretato come espressione
+	regolare corrispondente a qualsiasi carattere, mentre
+	il percorso assoluto viene interpretato come un secondo
+	file da esaminare.
+	
+	Il comando risultante diventa:
+
+	grep -i . /etc/natas_webpass/natas11 dictionary.txt
+	
+	In questo modo, grep tenta di leggere anche il file
+	contenente la password dell'utente natas11 e ne stampa
+	il contenuto, consentendo di recuperare le credenziali
+	per accedere al livello successivo.
+
+
 [+] NOTE
+
+	Un caso reale interessante e' quello di Shellshock
+	(CVE-2014-6271), una vulnerabilita' scoperta nel 2014
+	che interessava la shell Bash e che, in determinate
+	condizioni, permetteva l'esecuzione di comandi arbitrari
+	attraverso variabili d'ambiente appositamente costruite.
+	La sua diffusione dimostro' quanto potessero essere
+	gravi i difetti nei meccanismi di interpretazione
+	dei comandi.
+	
+	Per prevenire vulnerabilita' di questo tipo, e'
+	preferibile evitare l'esecuzione di comandi tramite
+	shell e utilizzare API che separino il comando dai
+	suoi argomenti. Inoltre, i permessi del filesystem
+	devono impedire l'accesso ai file sensibili anche
+	quando un comando viene utilizzato impropriamente.
+
 
 [+] CODICE DI ACCESSO
 
-	VUMQDmuITOEHzhviLE5V0VG9cPMQkyxd
+VUMQDmuITOEHzhviLE5V0VG9cPMQkyxd
+
 
 ==========================================================
