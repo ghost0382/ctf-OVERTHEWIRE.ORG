@@ -1,6 +1,10 @@
 ===========================================================
 
+<<<<<<< HEAD
 NATAS - LEVEL 12
+=======
+	NATAS - LEVEL 12
+>>>>>>> 94d8e4f (removed unused files)
 
 ===========================================================
 
@@ -13,8 +17,12 @@ NATAS - LEVEL 12
 	with potential Remote Code Execution (RCE)
 
 
+
+
+
 [+] EXPLOIT
 
+<<<<<<< HEAD
 	Analizzando il codice sorgente PHP fornito dal
 	livello, si nota che l'applicazione permette di
 	caricare un file e determina la relativa estensione
@@ -52,6 +60,9 @@ NATAS - LEVEL 12
 	configurato per eseguire PHP nella directory
 	di upload, è possibile richiederlo tramite browser
 	e ottenere la password.
+=======
+
+>>>>>>> 94d8e4f (removed unused files)
 
 
 [+] NOTE
@@ -59,6 +70,7 @@ NATAS - LEVEL 12
 	La vulnerabilità deriva dalla mancata validazione
 	lato server dell'estensione del file caricato.
 
+<<<<<<< HEAD
 	- File Upload
 		Il server si fida di un parametro controllato
 		dall'utente per determinare l'estensione.
@@ -79,3 +91,7 @@ NATAS - LEVEL 12
 	[Inserire la password ottenuta per natas13]
 
 ===========================================================
+=======
+
+==========================================================
+>>>>>>> 94d8e4f (removed unused files)
