@@ -1,16 +1,81 @@
 ===========================================================
 
-	NATAS - LEVEL 
+NATAS - LEVEL 12
 
 ===========================================================
 
 
 
-[+] VULENRABILITA
+
+[+] VULNERABILITÀ
+
+	Unrestricted File Upload (CWE-434)
+	with potential Remote Code Execution (RCE)
+
 
 [+] EXPLOIT
 
+	Analizzando il codice sorgente PHP fornito dal
+	livello, si nota che l'applicazione permette di
+	caricare un file e determina la relativa estensione
+	attraverso il parametro filename ricevuto dal client.
+
+	La funzione pathinfo() estrae l'estensione dal
+	nome fornito, mentre il server genera un nome
+	casuale mantenendo tale estensione.
+
+	Il campo filename è di tipo hidden, ma il suo
+	valore può essere modificato prima dell'invio
+	della richiesta HTTP.
+
+	Impostando un'estensione .php, è quindi possibile
+	far salvare al server un file PHP nella directory
+	di upload/ sfruttando l'assenza di adeguati
+	controlli lato server sul tipo di file.
+
+	Il file PHP utilizzato contiene il seguente codice:
+
+		<?php
+		echo file_get_contents(
+			"/etc/natas_webpass/natas13"
+		);
+		?>
+
+	La funzione file_get_contents() legge il contenuto
+	del file specificato e lo restituisce come stringa.
+	
+	La funzione echo stampa quindi la password nella
+	risposta HTTP, senza interpretare il contenuto
+	del file come codice PHP.
+
+	Una volta caricato il file, se il server è
+	configurato per eseguire PHP nella directory
+	di upload, è possibile richiederlo tramite browser
+	e ottenere la password.
+
+
 [+] NOTE
 
+	La vulnerabilità deriva dalla mancata validazione
+	lato server dell'estensione del file caricato.
 
-==========================================================
+	- File Upload
+		Il server si fida di un parametro controllato
+		dall'utente per determinare l'estensione.
+
+	- Remote Code Execution
+		Un file PHP caricato può essere eseguito
+		dal server se la directory consente
+		l'interpretazione degli script.
+
+	- Prevenzione
+		Validare i file lato server e impedire
+		l'esecuzione di script nella directory
+		destinata agli upload.
+
+
+[+] CODICE DI ACCESSO
+
+	[Inserire la password ottenuta per natas13]
+
+===========================================================

@@ -1,0 +1,21 @@
+==== CODE ANALISYS ====
+
+
+
+====   FUNZIONI    ====
+
+function genRandomString():
+	- genera stringa random lunga 10c con caratteri a-z0-9
+	
+function makeRandomPath($dir, $ext)
+	- 2 parametri -> directory ed estensione file
+	- dir + / + randomString + ext -> finche non trova un file esistente.
+	
+funcrion makeRandomPathFromFilename($dir, $fn)
+	- $ext estrapola l'esntensione del file $fn e la passa a makeRandomPath
+	
+
+Nel codcie successivo viene fatta una richiesta di upload con delle 
+regole restrittive sulla grandezza.
+In caso di upload corretto viene risposto un messaggio dove viene indicato
+dove' stato caricato il file.
