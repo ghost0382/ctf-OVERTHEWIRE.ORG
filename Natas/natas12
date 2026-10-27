@@ -1,97 +1,174 @@
 ===========================================================
 
-<<<<<<< HEAD
-NATAS - LEVEL 12
-=======
 	NATAS - LEVEL 12
->>>>>>> 94d8e4f (removed unused files)
 
 ===========================================================
 
 
 
+[+] VULNERABILITA
 
-[+] VULNERABILITÀ
-
-	Unrestricted File Upload (CWE-434)
-	with potential Remote Code Execution (RCE)
-
-
-
+	Unrestricted File Upload &
+	Improper File Type Validation
+	(Potential Remote Code Execution)
 
 
 [+] EXPLOIT
 
-<<<<<<< HEAD
-	Analizzando il codice sorgente PHP fornito dal
-	livello, si nota che l'applicazione permette di
-	caricare un file e determina la relativa estensione
-	attraverso il parametro filename ricevuto dal client.
+	Analizzando il codice PHP fornito, si nota che
+	l'applicazione consente di caricare un file attraverso
+	un form HTML, presentato all'utente come strumento per
+	l'upload di immagini JPEG con dimensione massima di
+	1000 byte.
 
-	La funzione pathinfo() estrae l'estensione dal
-	nome fornito, mentre il server genera un nome
-	casuale mantenendo tale estensione.
+	Esaminando le funzioni definite nel codice sorgente,
+	e' possibile individuare il meccanismo utilizzato per
+	generare il nome del file destinato al caricamento.
 
-	Il campo filename è di tipo hidden, ma il suo
-	valore può essere modificato prima dell'invio
-	della richiesta HTTP.
+	In particolare, la funzione genRandomString() genera
+	una stringa casuale di 10 caratteri, utilizzando
+	lettere minuscole e cifre numeriche.
 
-	Impostando un'estensione .php, è quindi possibile
-	far salvare al server un file PHP nella directory
-	di upload/ sfruttando l'assenza di adeguati
-	controlli lato server sul tipo di file.
+	La funzione makeRandomPath() utilizza tale stringa per
+	costruire il percorso di destinazione del file,
+	aggiungendo l'estensione ricevuta come parametro e
+	verificando che il percorso generato non corrisponda
+	a un file gia' esistente.
 
-	Il file PHP utilizzato contiene il seguente codice:
+	Infine, makeRandomPathFromFilename() estrae
+	l'estensione dal nome del file ricevuto tramite
+	il parametro POST "filename", utilizzando la funzione
+	pathinfo() con il parametro PATHINFO_EXTENSION.
+
+	Il punto critico risiede proprio nell'origine di
+	questo valore: l'estensione viene determinata sulla
+	base di un parametro controllabile dal client, senza
+	alcuna verifica server-side che imponga l'utilizzo
+	esclusivo di file JPEG.
+
+	Analizzando il form HTML, si individua infatti
+	il seguente campo nascosto:
+
+		<input type="hidden"
+		       name="filename"
+		       value="zvppxot9dn.jpg"
+		/>
+
+	Il valore mostrato e' generato dinamicamente dal server
+	e contiene inizialmente l'estensione ".jpg". Tuttavia,
+	l'attributo type="hidden" determina soltanto che
+	il campo non venga visualizzato normalmente
+	nell'interfaccia grafica: non impedisce all'utente
+	di modificarne il contenuto.
+
+	Intervenendo sulla richiesta HTTP POST, e' quindi
+	possibile modificare il valore del parametro
+	"filename", sostituendo l'estensione ".jpg" con
+	".php".
+
+	Il server utilizzera' la nuova estensione per
+	determinare il percorso di destinazione, mantenendo
+	comunque la generazione casuale del nome del file.
+
+	Un ulteriore elemento rilevante riguarda i controlli
+	applicati al file caricato. Nel codice analizzato,
+	l'unica verifica esplicita riguarda la dimensione
+	del file, tramite la seguente istruzione:
+
+	if(filesize($_FILES['uploadedfile']['tmp_name']) > 1000)
+
+	Non sono presenti controlli che verifichino
+	effettivamente che il contenuto del file corrisponda
+	a un'immagine JPEG, ne' una whitelist server-side
+	delle estensioni consentite.
+
+	Anche il parametro MAX_FILE_SIZE presente nel form
+	HTML non costituisce un controllo di sicurezza
+	sufficiente, poiche' viene trasmesso dal client
+	e non sostituisce le verifiche effettuate dal server.
+
+	Sfruttando questa condizione, e' possibile predisporre
+	un file contenente codice PHP, di dimensione inferiore
+	al limite previsto, e caricarlo modificando
+	l'estensione richiesta tramite il parametro "filename".
+
+	Per verificare la possibilita' di eseguire codice
+	lato server, il file puo' contenere uno script PHP
+	che legga il file delle credenziali del livello
+	successivo:
 
 		<?php
-		echo file_get_contents(
-			"/etc/natas_webpass/natas13"
-		);
+		    echo file_get_contents('/etc/natas_webpass/natas13');
 		?>
 
-	La funzione file_get_contents() legge il contenuto
-	del file specificato e lo restituisce come stringa.
-	
-	La funzione echo stampa quindi la password nella
-	risposta HTTP, senza interpretare il contenuto
-	del file come codice PHP.
+	Una volta completato l'upload, l'applicazione
+	restituisce un link al percorso del file salvato
+	all'interno della directory "upload".
 
-	Una volta caricato il file, se il server è
-	configurato per eseguire PHP nella directory
-	di upload, è possibile richiederlo tramite browser
-	e ottenere la password.
-=======
+	Accedendo al link generato, qualora la configurazione
+	del server consenta l'interpretazione dei file PHP
+	presenti in tale directory, il codice viene eseguito
+	lato server e il risultato viene restituito nella
+	risposta HTTP.
 
->>>>>>> 94d8e4f (removed unused files)
+	In questo modo e' possibile leggere il contenuto
+	del file "/etc/natas_webpass/natas13", recuperando
+	la password necessaria per accedere al livello
+	successivo, Natas 13.
 
 
 [+] NOTE
 
-	La vulnerabilità deriva dalla mancata validazione
-	lato server dell'estensione del file caricato.
+	Il livello dimostra come un meccanismo di upload
+	possa essere vulnerabile quando l'applicazione si
+	affida a informazioni fornite dal client per
+	determinare il tipo e l'estensione del file.
 
-<<<<<<< HEAD
-	- File Upload
-		Il server si fida di un parametro controllato
-		dall'utente per determinare l'estensione.
+	In particolare, un campo HTML nascosto non deve
+	essere considerato affidabile: il suo contenuto puo'
+	essere modificato prima dell'invio della richiesta
+	oppure direttamente intervenendo sul traffico HTTP.
 
-	- Remote Code Execution
-		Un file PHP caricato può essere eseguito
-		dal server se la directory consente
-		l'interpretazione degli script.
+	La vulnerabilita' non deriva dalla generazione
+	casuale del nome del file, ma dall'assenza di una
+	validazione adeguata dell'estensione e del contenuto
+	del file caricato.
 
-	- Prevenzione
-		Validare i file lato server e impedire
-		l'esecuzione di script nella directory
-		destinata agli upload.
+	La randomizzazione del nome contribuisce a evitare
+	collisioni accidentali tra file, ma non impedisce
+	a un utente di controllare l'estensione utilizzata
+	dal server.
 
+	E' inoltre importante distinguere il caricamento
+	di un file PHP dalla sua esecuzione: la presenza
+	dell'estensione ".php" non garantisce, da sola,
+	l'esecuzione del codice. Questa dipende dalla
+	configurazione del server web e dall'eventuale
+	interpretazione degli script nella directory
+	di destinazione.
 
+	Nel contesto del livello, la possibilita' di caricare
+	codice PHP in una posizione accessibile via HTTP
+	e di ottenerne l'esecuzione consente di realizzare
+	una forma di Remote Code Execution (RCE).
+
+	Per prevenire questo tipo di attacco, e' opportuno
+	applicare una whitelist server-side delle estensioni
+	consentite, verificare il contenuto effettivo dei
+	file caricati e non affidarsi esclusivamente al nome
+	o al MIME type dichiarato dal client.
+
+	E' inoltre consigliabile memorizzare gli upload
+	in una directory non eseguibile e, quando possibile,
+	al di fuori della document root del server web.
+	In questo modo, anche qualora venisse caricato
+	un file contenente codice eseguibile, si ridurrebbe
+	la possibilita' che venga interpretato direttamente
+	dal server.
+	
+	
 [+] CODICE DI ACCESSO
 
-	[Inserire la password ottenuta per natas13]
-
+	g8ba0olAzaSJuyS4gnmbdVVigAICLG1k
+		
 ===========================================================
-=======
-
-==========================================================
->>>>>>> 94d8e4f (removed unused files)
