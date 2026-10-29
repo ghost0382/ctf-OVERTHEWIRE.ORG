@@ -1,0 +1,242 @@
+Ciao chat, sto scrivendo i report per i livelli della CTF Natas su overthewire.org.
+Avrei bisogno che tu mi aiutassi a stilarli in modo formale e tecnico.
+
+Se la mia bozza e sbagliata o imprecisa, aiutami a capire meglio i motivi e come
+si risolve realmente il livello.
+
+Inoltre ti chiedo di andare a fondo nelle spiegazioni, non limitandoti a descrivere
+quello che abbiamo fatto ma spiegando i motivi del perche' un exploit funziona.
+
+Ti lascio di seguito un esempio che avevamo scritto insieme l'ultima volta:
+
+
+===========================================================
+
+	NATAS - LEVEL 12
+
+===========================================================
+
+
+
+[+] VULNERABILITA
+
+	Unrestricted File Upload &
+	Improper File Type Validation
+	(Potential Remote Code Execution)
+
+
+[+] EXPLOIT
+
+	Analizzando il codice PHP fornito, si nota che
+	l'applicazione consente di caricare un file attraverso
+	un form HTML, presentato all'utente come strumento per
+	l'upload di immagini JPEG con dimensione massima di
+	1000 byte.
+
+	Esaminando le funzioni definite nel codice sorgente,
+	e' possibile individuare il meccanismo utilizzato per
+	generare il nome del file destinato al caricamento.
+
+	In particolare, la funzione genRandomString() genera
+	una stringa casuale di 10 caratteri, utilizzando
+	lettere minuscole e cifre numeriche.
+
+	La funzione makeRandomPath() utilizza tale stringa per
+	costruire il percorso di destinazione del file,
+	aggiungendo l'estensione ricevuta come parametro e
+	verificando che il percorso generato non corrisponda
+	a un file gia' esistente.
+
+	Infine, makeRandomPathFromFilename() estrae
+	l'estensione dal nome del file ricevuto tramite
+	il parametro POST "filename", utilizzando la funzione
+	pathinfo() con il parametro PATHINFO_EXTENSION.
+
+	Il punto critico risiede proprio nell'origine di
+	questo valore: l'estensione viene determinata sulla
+	base di un parametro controllabile dal client, senza
+	alcuna verifica server-side che imponga l'utilizzo
+	esclusivo di file JPEG.
+
+	Analizzando il form HTML, si individua infatti
+	il seguente campo nascosto:
+
+		<input type="hidden"
+		       name="filename"
+		       value="zvppxot9dn.jpg"
+		/>
+
+	Il valore mostrato e' generato dinamicamente dal server
+	e contiene inizialmente l'estensione ".jpg". Tuttavia,
+	l'attributo type="hidden" determina soltanto che
+	il campo non venga visualizzato normalmente
+	nell'interfaccia grafica: non impedisce all'utente
+	di modificarne il contenuto.
+
+	Intervenendo sulla richiesta HTTP POST, e' quindi
+	possibile modificare il valore del parametro
+	"filename", sostituendo l'estensione ".jpg" con
+	...
+	...
+	...
+
+	Sfruttando questa condizione, e' possibile predisporre
+	un file contenente codice PHP, di dimensione inferiore
+	al limite previsto, e caricarlo modificando
+	l'estensione richiesta tramite il parametro "filename".
+
+	Per verificare la possibilita' di eseguire codice
+	lato server, il file puo' contenere uno script PHP
+	che legga il file delle credenziali del livello
+	successivo:
+
+		<?php
+		    echo file_get_contents('/etc/natas_webpass/natas13');
+		?>
+
+	Una volta completato l'upload, l'applicazione
+	...
+	...
+	... 
+
+
+	lato server e il risultato viene restituito nella
+	risposta HTTP.
+
+	In questo modo e' possibile leggere il contenuto
+	del file "/etc/natas_webpass/natas13", recuperando
+	la password necessaria per accedere al livello
+	successivo, Natas 13.
+
+
+[+] NOTE
+
+	Il livello dimostra come un meccanismo di upload
+	possa essere vulnerabile quando l'applicazione si
+	affida a informazioni fornite dal client per
+	determinare il tipo e l'estensione del file.
+
+	In particolare, un campo HTML nascosto non deve
+	essere considerato affidabile: il suo contenuto puo'
+	essere modificato prima dell'invio della richiesta
+	oppure direttamente intervenendo sul traffico HTTP.
+
+	La vulnerabilita' non deriva dalla generazione
+	casuale del nome del file, ma dall'assenza di una
+	validazione adeguata dell'estensione e del contenuto
+	del file caricato.
+
+	La randomizzazione del nome contribuisce a evitare
+	collisioni accidentali tra file, ma non impedisce
+	a un utente di controllare l'estensione utilizzata
+	dal server.
+
+	E' inoltre importante distinguere il caricamento
+	...
+	...
+	...
+
+	Per prevenire questo tipo di attacco, e' opportuno
+	applicare una whitelist server-side delle estensioni
+	consentite, verificare il contenuto effettivo dei
+	file caricati e non affidarsi esclusivamente al nome
+	o al MIME type dichiarato dal client.
+
+	E' inoltre consigliabile memorizzare gli upload
+	in una directory non eseguibile e, quando possibile,
+	al di fuori della document root del server web.
+	In questo modo, anche qualora venisse caricato
+	un file contenente codice eseguibile, si ridurrebbe
+	la possibilita' che venga interpretato direttamente
+	dal server.
+	
+	
+[+] CODICE DI ACCESSO
+
+	g8ba0olAzaSJuyS4gnmbdVVigAICLG1k
+		
+===========================================================
+
+
+
+E quest altro:
+
+
+===========================================================
+
+NATAS - LEVEL 11
+
+===========================================================
+
+
+
+[+] VULNERABILITA
+
+	Cookie Tampering via Weak XOR Encryption &
+	Lack of Data Integrity Protection
+
+[+] EXPLOIT
+
+	Analizzando il codice PHP fornito, possiamo notare
+	che l'applicazione memorizza le informazioni relative
+	alla visualizzazione della password e al colore dello
+	sfondo all'interno di un cookie denominato "data".
+	
+	I dati vengono prima convertiti in formato JSON tramite
+	json_encode(), successivamente cifrati con una funzione
+	XOR e infine codificati in Base64.
+	
+	Il processo di decifratura avviene in ordine inverso.
+	In particolare, json_decode() converte la stringa JSON
+	ottenuta dopo la decifratura in un array associativo
+	PHP, permettendo all'applicazione di accedere ai campi
+	showpassword e bgcolor.
+	
+	Il cookie generato contiene inizialmente i valori:
+	
+		{"showpassword":"no","bgcolor":"#ffffff"}
+	
+	Per comprendere il funzionamento della cifratura, e'
+	...
+	...
+	...
+
+	
+	Il nuovo oggetto JSON e' stato quindi cifrato tramite
+	XOR con la chiave individuata e codificato nuovamente
+	in Base64, ottenendo il seguente valore per il cookie:
+	
+		EGAgHwQ1IxYYMSQYGSZxTUk7NgRJbnEVDCE8GwQwc
+		U1JYTURDSQ1EUk/
+	
+	Sostituendo il cookie originale con quello manipolato,
+	l'applicazione ha accettato i nuovi valori e ha mostrato
+	la password necessaria per accedere al livello natas12.
+
+
+[+] NOTE
+
+	Il livello dimostra come la cifratura non sia sufficiente
+	a garantire la sicurezza dei dati se viene utilizzato
+	un algoritmo debole e ripetitivo.
+	
+	L'operazione XOR possiede una proprieta' interessante:
+	...
+	...
+
+	
+	Per prevenire questi attacchi, e' preferibile mantenere
+	le informazioni sensibili lato server. Se e' necessario
+	memorizzare dati nel cookie, occorre utilizzare sistemi
+	crittografici moderni con autenticazione e verifica
+	dell'integrita', impedendo modifiche non autorizzate.
+
+
+[+] CODICE DI ACCESSO
+
+	EAGkE8uzFTxeoTT2mMst9Xy7PX6guEng
+
+==========================================================
+
+
+Grazie per l'aiuto.

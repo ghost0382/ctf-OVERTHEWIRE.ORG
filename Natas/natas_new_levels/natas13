@@ -1,0 +1,278 @@
+=======================================================================
+
+NATAS - LEVEL 13
+
+=======================================================================
+
+
+
+[+] VULNERABILITÀ
+
+	Unrestricted File Upload & Improper File Type Validation 
+	(Remote Code Execution)
+
+
+[+] EXPLOIT
+
+	Analizzando il codice sorgente PHP fornito dalla pagina, si osserva
+	che il livello 13 presenta una struttura sostanzialmente analoga a
+	quella del livello precedente, ma introduce un controllo aggiuntivo
+	sul contenuto del file caricato.
+
+	L'applicazione consente di effettuare l'upload di un file attraver-
+	so un form HTML, dichiarando di accettare immagini JPEG con una di-
+	mensione massima di 1000 byte.
+
+	La principale differenza rispetto al livello 12 risiede nell'intro-
+	duzione della funzione exif_imagetype(), che viene utilizzata per
+	verificare che il file caricato venga riconosciuto come un'immagine.
+
+	In particolare, il codice esegue il seguente controllo:
+
+		else if (! exif_imagetype(
+			$_FILES['uploadedfile']['tmp_name'])) {
+			echo "File is not an image";
+		}
+
+	La funzione exif_imagetype() determina il tipo di immagine analiz-
+	zando la firma binaria presente all'inizio del file, comunemente
+	denominata magic bytes o file signature.
+
+	Questa firma è costituita da una sequenza di byte caratteristica di
+	determinati formati e viene utilizzata per riconoscere il tipo di
+	file indipendentemente dall'estensione assegnata.
+
+	È importante precisare che tale verifica non costituisce una vali-
+	dazione completa del contenuto. La funzione identifica il formato
+	sulla base della firma iniziale, ma il suo risultato non garantisce
+	che l'intero file rispetti la struttura prevista dal formato rico-
+	nosciuto, né che il contenuto successivo sia privo di dati estranei
+	o potenzialmente pericolosi.
+
+	Il controllo implementato dall'applicazione risulta quindi insuffi-
+	ciente a impedire che un file contenente codice PHP venga accettato
+	come immagine.
+
+	Per comprendere il funzionamento del bypass, è necessario distin-
+	guere il riconoscimento del formato dall'effettiva interpretazione
+	del contenuto da parte del server.
+
+	La funzione exif_imagetype() analizza una porzione
+	iniziale del file per identificare una firma compatibile
+	con un formato immagine. Non verifica, tuttavia, che
+	l'intero contenuto costituisca un'immagine valida o che
+	non siano presenti dati aggiuntivi dopo la firma.
+
+	È quindi possibile costruire un file che inizi con una
+	sequenza di byte riconducibile al formato JPEG e che
+	contenga, nella parte successiva, codice PHP.
+
+	Nel caso analizzato, la sequenza utilizzata è:
+
+		FF D8 FF E0
+
+	I valori sono espressi in esadecimale e corrispondono
+	a una sequenza iniziale comunemente associata ai file
+	JPEG. È tuttavia importante precisare che questi quattro
+	byte, da soli, non costituiscono un'immagine JPEG completa
+	e valida.
+
+	Il loro scopo è quello di soddisfare il controllo
+	implementato nel laboratorio, inducendo la funzione a
+	riconoscere il contenuto come compatibile con un formato
+	immagine supportato.
+
+	Dopo la firma vengono inserite le istruzioni PHP che
+	dovranno essere interpretate dal server:
+
+		<?php
+			echo file_get_contents(
+			    '/etc/natas_webpass/natas14');
+		?>
+
+	La funzione file_get_contents() legge il contenuto del
+	file specificato e lo restituisce sotto forma di stringa.
+	Successivamente, echo invia tale contenuto nell'output
+	generato dallo script.
+
+	Nel contesto del laboratorio, il file
+	/etc/natas_webpass/natas14 contiene la password necessaria
+	per accedere al livello successivo.
+
+	Il file risultante contiene quindi una firma binaria
+	iniziale seguita da un blocco di codice PHP. Questa
+	combinazione è possibile perché il riconoscimento del
+	formato immagine e l'interpretazione del codice PHP
+	sono operazioni distinte, effettuate da componenti
+	diversi.
+
+	Quando PHP interpreta un file, il contenuto che si trova
+	al di fuori dei tag <?php e ?> viene normalmente trattato
+	come testo da inviare nell'output. Di conseguenza, i byte
+	inseriti prima del blocco PHP non impediscono, di per sé,
+	l'esecuzione delle istruzioni che seguono.
+
+	Nel caso specifico, i byte FF D8 FF E0 non corrispondono
+	a normali caratteri ASCII stampabili. Se vengono inviati
+	nella risposta HTTP, possono essere visualizzati come
+	caratteri anomali o simboli illeggibili, a seconda dello
+	strumento utilizzato per osservare il risultato.
+
+	Questo comportamento spiega perché, nell'output ottenuto,
+	possa comparire una sequenza apparentemente incomprensibile
+	prima del contenuto restituito dallo script.
+
+	Una volta superato il controllo sul contenuto, rimane
+	necessario fare in modo che il file venga salvato con
+	un'estensione che consenta al server web di interpretarlo
+	come codice PHP.
+
+	Anche sotto questo aspetto, il codice presenta una
+	debolezza già osservata nel livello precedente.
+
+	La funzione makeRandomPathFromFilename() utilizza infatti
+	il parametro filename ricevuto tramite la richiesta POST
+	per determinare l'estensione del file:
+
+		function makeRandomPathFromFilename($dir, $fn) {
+			$ext = pathinfo($fn, PATHINFO_EXTENSION);
+			return makeRandomPath($dir, $ext);
+		}
+
+	La funzione pathinfo(), invocata con il parametro
+	PATHINFO_EXTENSION, estrae l'estensione dal nome ricevuto.
+	Il valore viene successivamente passato a makeRandomPath(),
+	che genera un nome casuale e aggiunge l'estensione estratta
+	per costruire il percorso di destinazione nella directory
+	upload.
+
+	Il problema risiede nell'origine del dato utilizzato
+	per determinare l'estensione: il parametro filename è
+	controllabile dal client e non viene sottoposto a una
+	validazione server-side che imponga esclusivamente
+	estensioni autorizzate.
+
+	Di conseguenza, l'applicazione affida a un valore fornito
+	dall'utente una decisione che influenza il modo in cui
+	il file verrà successivamente gestito dal server.
+
+	Analizzando il form HTML, si individua un campo nascosto
+	simile al seguente:
+
+		<input type="hidden"
+			   name="filename"
+			   value="19f4ul911b.jpg" />
+
+	L'attributo type="hidden" determina esclusivamente che
+	il campo non venga normalmente visualizzato nell'interfaccia
+	grafica. Non impedisce all'utente di modificarne il valore
+	prima dell'invio della richiesta HTTP.
+
+	I campi di un form HTML non costituiscono infatti un
+	meccanismo di sicurezza: il browser trasmette i valori
+	presenti nella richiesta, ma un client può modificarli
+	utilizzando gli strumenti per sviluppatori oppure
+	intercettando il traffico HTTP con un proxy come Burp Suite.
+
+	Intervenendo sulla richiesta POST, è quindi possibile
+	sostituire l'estensione .jpg con .php. In questo modo,
+	quando il server elabora il parametro mediante pathinfo(),
+	ricava l'estensione php e la utilizza per costruire
+	il percorso finale del file.
+
+	La generazione casuale del nome continua a funzionare
+	normalmente, ma il file viene salvato con un'estensione
+	scelta dal client.
+
+	È importante distinguere i due contributi all'exploit:
+	la modifica del parametro filename non trasforma il
+	contenuto del file in codice PHP, ma determina il nome
+	con cui il contenuto viene salvato. Il codice PHP è già
+	presente nel file preparato in precedenza.
+
+	La combinazione dei due comportamenti consente quindi
+	di superare i controlli rilevanti: la firma iniziale
+	permette al file di superare il controllo basato su
+	exif_imagetype(), mentre l'estensione .php fa sì che
+	il file venga salvato con un'estensione che, nella
+	configurazione del laboratorio, consente al server web
+	di sottoporlo all'interpretazione PHP.
+
+	Una volta completato l'upload, l'applicazione utilizza
+	move_uploaded_file() per spostare il file temporaneo
+	nella directory di destinazione e restituisce un
+	collegamento al percorso del file caricato.
+
+	Accedendo a tale percorso, il server interpreta il file
+	come script PHP. Il codice racchiuso nei tag PHP viene
+	quindi eseguito e file_get_contents() legge il contenuto
+	di /etc/natas_webpass/natas14, che viene restituito
+	nella risposta HTTP tramite echo.
+
+
+[+] NOTE
+
+	Il livello 13 dimostra come il riconoscimento della
+	firma binaria di un file non sia sufficiente a garantire
+	la sicurezza di una funzionalità di upload.
+
+	La vulnerabilità deriva dalla combinazione di una
+	validazione incompleta del contenuto e della possibilità
+	di controllare l'estensione assegnata al file salvato
+	attraverso un parametro fornito dal client.
+
+	La funzione exif_imagetype() può essere utile per
+	identificare il formato suggerito dalla firma iniziale,
+	ma non garantisce che il file costituisca un'immagine
+	valida o che il contenuto successivo sia coerente con
+	il formato riconosciuto.
+
+	Allo stesso modo, un campo HTML nascosto non deve essere
+	considerato affidabile, poiché qualsiasi dato trasmesso
+	dal client può essere modificato prima di raggiungere
+	il server.
+
+	È inoltre importante distinguere il caricamento di
+	codice PHP dalla sua effettiva esecuzione. La presenza
+	di codice PHP all'interno di un file non comporta
+	automaticamente Remote Code Execution: affinché il
+	codice venga eseguito, il file deve essere raggiungibile
+	attraverso un percorso accessibile e il server web deve
+	essere configurato per sottoporlo all'interprete PHP.
+
+	Nel laboratorio, la possibilità di controllare
+	l'estensione e di accedere al file caricato permette
+	di soddisfare queste condizioni.
+
+	Per prevenire questa classe di vulnerabilità, è
+	necessario validare i file lato server utilizzando
+	controlli appropriati al formato ammesso, senza affidarsi
+	esclusivamente all'estensione o alla firma iniziale.
+
+	Quando possibile, è opportuno verificare e ricostruire
+	il contenuto attraverso una libreria dedicata alla
+	gestione delle immagini, generare sul server un nome
+	e un'estensione coerenti con il formato effettivamente
+	validato e memorizzare gli upload al di fuori della
+	document root.
+
+	Qualora ciò non sia possibile, la directory destinata
+	ai file caricati dovrebbe essere configurata in modo
+	da impedire l'esecuzione di script.
+
+	La lezione principale del livello consiste nel
+	comprendere che la validazione del tipo di file e il
+	controllo della sua esecuzione sono due aspetti distinti.
+	Un file può superare un controllo superficiale sul
+	formato e contenere comunque codice eseguibile.
+
+	Per questo motivo, la sicurezza di una funzionalità
+	di upload deve basarsi su più controlli indipendenti,
+	applicati esclusivamente lato server.
+
+
+[+] CODICE DI ACCESSO
+
+	A0xXu2x9FW8rb8OSQ4ei6n5VBbLUz8h8
+
+=======================================================================

@@ -1,0 +1,7 @@
+Procedura per scrivere bytes in un file
+
+Bytes: FF D8 FF E0
+Funzione: printf
+Escape: \x
+
+--> printf('\xFF\xD8....')
