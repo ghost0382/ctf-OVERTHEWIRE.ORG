@@ -1,0 +1,178 @@
+=======================================================================
+
+NATAS - LEVEL 14
+
+=======================================================================
+
+[+] VULNERABILITÀ
+
+	SQL Injection & Authentication Bypass (Improper Input Validation)
+
+[+] EXPLOIT
+
+	Analizzando il codice sorgente PHP fornito dalla pagina, si osserva
+	che il livello 14 presenta un form di autenticazione attraverso il
+	quale l'utente può inserire un nome utente e una password per acce-
+	dere all'applicazione.
+
+	Esaminando il codice, si nota che l'applicazione utilizza un data-
+	base MySQL per verificare la correttezza delle credenziali inserite.
+	La connessione viene stabilita attraverso la funzione
+	mysqli_connect(), mentre la funzione mysqli_select_db() seleziona il
+	database denominato natas14.
+
+	Il punto centrale dell'implementazione è rappresentato dalla costru-
+	zione della query SQL utilizzata per verificare le credenziali:
+
+		$query = "SELECT * from users where
+		username=\"".$_REQUEST["username"]."\"
+		and password=\"".$_REQUEST["password"]."\"";
+
+
+	Analizzando questa istruzione, si osserva che i valori dei parametri
+	username e password vengono concatenati direttamente all'interno
+	della query SQL, senza essere sottoposti ad alcuna forma di valida-
+	zione o escaping.
+
+	In condizioni normali, la query generata dall'applicazione presenta
+	una struttura equivalente alla seguente:
+
+		SELECT * FROM users
+		WHERE username="username"
+		AND password="password"
+
+
+	L'obiettivo dell'istruzione è recuperare dalla tabella users le
+	righe in cui entrambi i valori corrispondono alle credenziali for-
+	nite dall'utente.
+
+	Il problema risiede nel fatto che i dati ricevuti dal client ven-
+	gono inseriti direttamente nell'istruzione SQL, senza distinguere
+	tra dati e codice.
+	Di conseguenza, un utente può intervenire sulla struttura della
+	query, inserendo caratteri e operatori SQL che vengono interpretati
+	dal database come parte dell'istruzione stessa.
+
+	Questa condizione introduce una vulnerabilità di tipo SQL Injection,
+	che in questo caso può essere sfruttata per aggirare completamente
+	il meccanismo di autenticazione.
+
+	Per comprendere il funzionamento dell'attacco, è necessario analiz-
+	zare il modo in cui MySQL interpreta le condizioni presenti nella
+	clausola WHERE.
+
+	L'operatore AND richiede che entrambe le condizioni collegate risul-
+	tino vere affinché una riga venga restituita. L'operatore OR, inve-
+	ce, restituisce un risultato vero quando almeno una delle condizioni
+	coinvolte è vera.
+
+	Sfruttando questa proprietà, è possibile introdurre un'espressione
+	logica che risulti sempre vera, indipendentemente dai valori effet-
+	tivamente presenti nel database.
+
+	A tale scopo viene utilizzato il seguente payload:
+
+		-->		" OR 1=1 #
+
+
+	Il payload viene inserito nel campo username, mentre il campo
+	password può contenere un valore arbitrario.
+
+	Per comprendere perché questa sequenza consenta di aggirare l'au-
+	tenticazione, è utile ricostruire la query SQL che viene generata
+	dal server dopo aver ricevuto il parametro manipolato.
+
+	Inserendo il payload nel campo username, la query assume la seguen-
+	te struttura:
+
+		SELECT * FROM users
+		WHERE username="" OR 1=1 #" AND password="password"
+
+
+	Analizzando la query risultante, si osserva che la prima doppia
+	virgoletta del payload chiude la stringa associata al valore user-
+	name, interrompendo il contesto originario nel quale il dato veni-
+	va interpretato come semplice valore testuale.
+
+	Successivamente, viene introdotto l'operatore OR seguito dall'es-
+	pressione 1=1.
+	Quest'ultima rappresenta una condizione booleana sempre vera, poiché
+	il valore 1 è sempre uguale a sé stesso.
+
+	La parte iniziale della clausola WHERE diventa quindi:
+
+		WHERE username="" OR 1=1
+
+
+	A questo punto interviene il carattere #, che in MySQL introduce un
+	commento fino alla fine della riga. Tutto ciò che segue viene igno-
+	rato dal parser SQL e non viene quindi considerato durante l'esecu-
+	zione della query.
+
+	In questo modo, la parte restante dell'istruzione, compreso il con-
+	trollo AND password="password", viene completamente esclusa dall'in-
+	terpretazione del database.
+
+	La query effettivamente valutata diventa quindi:
+
+		SELECT * FROM users
+		WHERE username="" OR 1=1
+
+
+	Poiché l'espressione 1=1 è sempre vera, l'intera condizione della
+	clausola WHERE risulta vera per tutte le righe della tabella, indi-
+	pendentemente dal contenuto dei campi username e password.
+
+	Di conseguenza, il database restituisce le righe presenti nella tabella users senza effettuare una reale verifica delle credenziali fornite dall'utente.
+
+	Il carattere # svolge quindi un ruolo fondamentale nell'exploit, poiché permette di eliminare dalla query la parte relativa alla verifica della password, evitando che il controllo originale possa influenzare il risultato.
+
+	È inoltre importante osservare che il payload viene inserito nel campo username proprio perché entrambi i parametri vengono concatenati direttamente nella query SQL. Non è necessario modificare il campo password, poiché la sua condizione viene resa irrilevante attraverso l'inserimento del commento.
+
+	Analizzando la parte finale del codice PHP, si individua il controllo utilizzato dall'applicazione per determinare se l'autenticazione sia avvenuta correttamente:
+
+	if(mysqli_num_rows(mysqli_query($link, $query)) > 0) {
+		echo "Successful login! The password for natas15 is <censored><br>";
+	} else {
+		echo "Access denied!<br>";
+	}
+
+
+	La funzione mysqli_query() esegue la query SQL costruita in precedenza, mentre mysqli_num_rows() restituisce il numero di righe presenti nel risultato ottenuto.
+
+	L'applicazione considera valida l'autenticazione quando il numero di righe restituite è maggiore di zero.
+
+	Poiché la condizione 1=1 permette alla query di restituire le righe presenti nella tabella, il controllo mysqli_num_rows() restituisce un valore positivo e l'espressione condizionale viene valutata come vera.
+
+	Di conseguenza, viene eseguito il ramo positivo dell'istruzione if e l'applicazione mostra il messaggio di autenticazione riuscita, insieme alla password necessaria per accedere al livello successivo, Natas 15.
+
+	In questo modo è possibile aggirare il meccanismo di autenticazione senza conoscere le credenziali effettivamente presenti nel database.
+
+[+] NOTE
+
+Il livello 14 dimostra come la concatenazione diretta di dati controllati dall'utente all'interno di una query SQL possa compromettere completamente un meccanismo di autenticazione.
+
+La vulnerabilità non deriva da una debolezza del database MySQL o da un problema relativo alla complessità delle password, ma da un errore nella gestione degli input ricevuti dal client.
+
+In particolare, l'applicazione non distingue tra i dati inseriti dall'utente e le istruzioni SQL che compongono la query. Questo permette di alterare la struttura dell'istruzione originale, introducendo operatori logici e commenti che modificano il comportamento atteso dell'interrogazione.
+
+L'aspetto più importante dell'attacco consiste nel fatto che non è necessario conoscere alcuna informazione relativa agli utenti presenti nel database. Sfruttando una condizione sempre vera, è possibile ottenere un risultato positivo indipendentemente dalle credenziali inserite.
+
+È inoltre importante distinguere questo tipo di attacco da una semplice manipolazione dei valori di input. Nella SQL Injection, infatti, l'utente non si limita a fornire dati inattesi, ma riesce a introdurre elementi che vengono interpretati dal database come parte del linguaggio SQL.
+
+Per prevenire questa vulnerabilità, è necessario evitare la concatenazione diretta degli input all'interno delle query e utilizzare istruzioni SQL parametrizzate (Prepared Statements).
+
+Attraverso i prepared statements, la struttura della query viene definita separatamente dai valori forniti dall'utente. I parametri vengono trasmessi al database come dati distinti dal codice SQL, impedendo che eventuali caratteri o istruzioni malevole possano modificare la struttura dell'interrogazione.
+
+Nel caso specifico, sarebbe opportuno utilizzare mysqli_prepare() e mysqli_stmt_bind_param() per associare username e password alla query, evitando che il loro contenuto venga interpretato come codice SQL.
+
+La lezione principale del livello consiste nel comprendere che la sicurezza di un sistema di autenticazione non dipende esclusivamente dalla correttezza delle credenziali, ma anche dal modo in cui queste vengono elaborate e verificate dal server.
+
+Una query costruita in modo insicuro può infatti trasformare un normale controllo delle credenziali in un'operazione completamente diversa, consentendo a un utente non autenticato di aggirare le restrizioni applicative.
+
+[+] CODICE DI ACCESSO
+
+[Password del livello Natas 15]
+
+
+=======================================================================

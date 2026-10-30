@@ -57,111 +57,106 @@ NATAS - LEVEL 13
 	guere il riconoscimento del formato dall'effettiva interpretazione
 	del contenuto da parte del server.
 
-	La funzione exif_imagetype() analizza una porzione
-	iniziale del file per identificare una firma compatibile
-	con un formato immagine. Non verifica, tuttavia, che
-	l'intero contenuto costituisca un'immagine valida o che
-	non siano presenti dati aggiuntivi dopo la firma.
+	La funzione exif_imagetype() analizza una porzione iniziale del
+	file per identificare una firma compatibile con un formato imma-
+	gine. Non verifica, tuttavia, che l'intero contenuto costituisca
+	un'immagine valida o che non siano presenti dati aggiuntivi dopo la
+	firma.
 
-	È quindi possibile costruire un file che inizi con una
-	sequenza di byte riconducibile al formato JPEG e che
-	contenga, nella parte successiva, codice PHP.
+	È quindi possibile costruire un file che inizi con una sequenza di
+	byte riconducibile al formato JPEG e che contenga, nella parte suc-
+	cessiva, codice PHP.
+
 
 	Nel caso analizzato, la sequenza utilizzata è:
 
 		FF D8 FF E0
 
-	I valori sono espressi in esadecimale e corrispondono
-	a una sequenza iniziale comunemente associata ai file
-	JPEG. È tuttavia importante precisare che questi quattro
-	byte, da soli, non costituiscono un'immagine JPEG completa
-	e valida.
 
-	Il loro scopo è quello di soddisfare il controllo
-	implementato nel laboratorio, inducendo la funzione a
-	riconoscere il contenuto come compatibile con un formato
-	immagine supportato.
+	I valori sono espressi in esadecimale e corrispondono a una sequenza
+	iniziale comunemente associata ai file JPEG.
+	È tuttavia importante precisare che questi quattro byte, da soli,
+	non costituiscono un'immagine JPEG completa e valida.
 
-	Dopo la firma vengono inserite le istruzioni PHP che
-	dovranno essere interpretate dal server:
+	Il loro scopo è quello di soddisfare il controllo implementato nello
+	script, inducendo la funzione a riconoscere il contenuto come com-
+	patibile con un formato immagine supportato.
+
+	Dopo la firma vengono inserite le istruzioni PHP che dovranno essere
+	interpretate dal server:
 
 		<?php
 			echo file_get_contents(
 			    '/etc/natas_webpass/natas14');
 		?>
 
-	La funzione file_get_contents() legge il contenuto del
-	file specificato e lo restituisce sotto forma di stringa.
-	Successivamente, echo invia tale contenuto nell'output
-	generato dallo script.
+	La funzione file_get_contents() legge il contenuto del file speci-
+	ficato e lo restituisce sotto forma di stringa.
+	Successivamente, echo invia tale contenuto nell'output generato
+	dallo script.
 
-	Nel contesto del laboratorio, il file
-	/etc/natas_webpass/natas14 contiene la password necessaria
-	per accedere al livello successivo.
-
-	Il file risultante contiene quindi una firma binaria
-	iniziale seguita da un blocco di codice PHP. Questa
-	combinazione è possibile perché il riconoscimento del
-	formato immagine e l'interpretazione del codice PHP
-	sono operazioni distinte, effettuate da componenti
+	Il file risultante contiene quindi una firma binaria iniziale se-
+	guita da un blocco di codice PHP. Questa combinazione è possibile
+	perché il riconoscimento del formato immagine e l'interpretazione
+	del codice PHP sono operazioni distinte, effettuate da componenti
 	diversi.
 
-	Quando PHP interpreta un file, il contenuto che si trova
-	al di fuori dei tag <?php e ?> viene normalmente trattato
-	come testo da inviare nell'output. Di conseguenza, i byte
-	inseriti prima del blocco PHP non impediscono, di per sé,
-	l'esecuzione delle istruzioni che seguono.
+	Quando PHP interpreta un file, il contenuto che si trova al di fuo-
+	ri dei tag <?php e ?> viene normalmente trattato come testo da in-
+	viare nell'output. Di conseguenza, i byte inseriti prima del blocco
+	PHP non impediscono, di per sé, l'esecuzione delle istruzioni che
+	seguono.
 
-	Nel caso specifico, i byte FF D8 FF E0 non corrispondono
-	a normali caratteri ASCII stampabili. Se vengono inviati
-	nella risposta HTTP, possono essere visualizzati come
-	caratteri anomali o simboli illeggibili, a seconda dello
-	strumento utilizzato per osservare il risultato.
+	Nel caso specifico, i byte FF D8 FF E0 non corrispondono a normali
+	caratteri ASCII stampabili. Se vengono inviati nella risposta HTTP,
+	possono essere visualizzati come caratteri anomali o simboli illeg-
+	gibili, a seconda dello strumento utilizzato per osservare il ri-
+	sultato.
 
-	Questo comportamento spiega perché, nell'output ottenuto,
-	possa comparire una sequenza apparentemente incomprensibile
-	prima del contenuto restituito dallo script.
+	Questo comportamento spiega perché, nell'output ottenuto, possa
+	comparire una sequenza apparentemente incomprensibile prima del
+	contenuto restituito dallo script.
 
-	Una volta superato il controllo sul contenuto, rimane
-	necessario fare in modo che il file venga salvato con
-	un'estensione che consenta al server web di interpretarlo
-	come codice PHP.
+	Una volta superato il controllo sul contenuto, rimane necessario
+	fare in modo che il file venga salvato con un'estensione che con-
+	senta al server web di interpretarlo come codice PHP.
 
-	Anche sotto questo aspetto, il codice presenta una
-	debolezza già osservata nel livello precedente.
+	Anche sotto questo aspetto, il codice presenta una debolezza già
+	osservata nel livello precedente.
 
-	La funzione makeRandomPathFromFilename() utilizza infatti
-	il parametro filename ricevuto tramite la richiesta POST
-	per determinare l'estensione del file:
+	La funzione makeRandomPathFromFilename() utilizza infatti il pa-
+	rametro filename ricevuto tramite la richiesta POST per determinare
+	l'estensione del file:
+
 
 		function makeRandomPathFromFilename($dir, $fn) {
 			$ext = pathinfo($fn, PATHINFO_EXTENSION);
 			return makeRandomPath($dir, $ext);
 		}
 
-	La funzione pathinfo(), invocata con il parametro
-	PATHINFO_EXTENSION, estrae l'estensione dal nome ricevuto.
-	Il valore viene successivamente passato a makeRandomPath(),
-	che genera un nome casuale e aggiunge l'estensione estratta
-	per costruire il percorso di destinazione nella directory
-	upload.
 
-	Il problema risiede nell'origine del dato utilizzato
-	per determinare l'estensione: il parametro filename è
-	controllabile dal client e non viene sottoposto a una
-	validazione server-side che imponga esclusivamente
-	estensioni autorizzate.
+	La funzione pathinfo(), invocata con il parametro PATHINFO_EXTENSION,
+	estrae l'estensione dal nome ricevuto.
+	Il valore viene successivamente passato a makeRandomPath(), che
+	genera un nome casuale e aggiunge l'estensione estratta per costru-
+	ire il percorso di destinazione nella directory upload.
 
-	Di conseguenza, l'applicazione affida a un valore fornito
-	dall'utente una decisione che influenza il modo in cui
-	il file verrà successivamente gestito dal server.
+	Il problema risiede nell'origine del dato utilizzato per determinare
+	l'estensione: il parametro filename è controllabile dal client e non
+	viene sottoposto a una validazione server-side che imponga esclusi-
+	vamente estensioni autorizzate.
 
-	Analizzando il form HTML, si individua un campo nascosto
-	simile al seguente:
+	Di conseguenza, l'applicazione affida a un valore fornito dall'
+	utente una decisione che influenza il modo in cui il file verrà
+	successivamente gestito dal server.
+
+	Analizzando il form HTML, si individua un campo nascosto simile al
+	seguente:
 
 		<input type="hidden"
 			   name="filename"
 			   value="19f4ul911b.jpg" />
+
 
 	L'attributo type="hidden" determina esclusivamente che
 	il campo non venga normalmente visualizzato nell'interfaccia
