@@ -158,112 +158,105 @@ NATAS - LEVEL 13
 			   value="19f4ul911b.jpg" />
 
 
-	L'attributo type="hidden" determina esclusivamente che
-	il campo non venga normalmente visualizzato nell'interfaccia
-	grafica. Non impedisce all'utente di modificarne il valore
-	prima dell'invio della richiesta HTTP.
+	L'attributo type="hidden" determina esclusivamente che il campo non
+	venga normalmente visualizzato nell'interfaccia grafica.
+	Non impedisce all'utente di modificarne il valore prima dell'invio
+	della richiesta HTTP.
 
-	I campi di un form HTML non costituiscono infatti un
-	meccanismo di sicurezza: il browser trasmette i valori
-	presenti nella richiesta, ma un client può modificarli
-	utilizzando gli strumenti per sviluppatori oppure
-	intercettando il traffico HTTP con un proxy come Burp Suite.
+	I campi di un form HTML non costituiscono infatti un meccanismo di
+	sicurezza: il browser trasmette i valori presenti nella richiesta,
+	ma un client può modificarli utilizzando gli strumenti per sviluppa-
+	tori oppure intercettando il traffico HTTP con un proxy come
+	Burp Suite.
 
-	Intervenendo sulla richiesta POST, è quindi possibile
-	sostituire l'estensione .jpg con .php. In questo modo,
-	quando il server elabora il parametro mediante pathinfo(),
-	ricava l'estensione php e la utilizza per costruire
-	il percorso finale del file.
+	Intervenendo sulla richiesta POST, è quindi possibile sostituire
+	l'estensione .jpg con .php.
+	In questo modo, quando il server elabora il parametro mediante
+	pathinfo(), ricava l'estensione php e la utilizza per costruire il
+	percorso finale del file.
 
-	La generazione casuale del nome continua a funzionare
-	normalmente, ma il file viene salvato con un'estensione
-	scelta dal client.
+	La generazione casuale del nome continua a funzionare normalmente,
+	ma il file viene salvato con un'estensione scelta dal client.
 
-	È importante distinguere i due contributi all'exploit:
-	la modifica del parametro filename non trasforma il
-	contenuto del file in codice PHP, ma determina il nome
-	con cui il contenuto viene salvato. Il codice PHP è già
-	presente nel file preparato in precedenza.
+	È importante distinguere i due contributi all'exploit: la modifica
+	del parametro filename non trasforma il contenuto del file in codice
+	PHP, ma determina il nome con cui il contenuto viene salvato.
+	Il codice PHP è già presente nel file preparato in precedenza.
 
-	La combinazione dei due comportamenti consente quindi
-	di superare i controlli rilevanti: la firma iniziale
-	permette al file di superare il controllo basato su
-	exif_imagetype(), mentre l'estensione .php fa sì che
-	il file venga salvato con un'estensione che, nella
-	configurazione del laboratorio, consente al server web
-	di sottoporlo all'interpretazione PHP.
+	La combinazione dei due comportamenti consente quindi di superare i
+	controlli rilevanti: la firma iniziale permette al file di superare
+	il controllo basato su exif_imagetype(), mentre l'estensione .php fa
+	sì che il file venga salvato con un'estensione che, nella configura-
+	zione del laboratorio, consente al server web di sottoporlo all'
+	interpretazione PHP.
 
-	Una volta completato l'upload, l'applicazione utilizza
-	move_uploaded_file() per spostare il file temporaneo
-	nella directory di destinazione e restituisce un
-	collegamento al percorso del file caricato.
+	Una volta completato l'upload, l'applicazione utilizza 
+	move_uploaded_file() per spostare il file temporaneo nella directory
+	di destinazione e restituisce un collegamento al percorso del file
+	caricato.
 
-	Accedendo a tale percorso, il server interpreta il file
-	come script PHP. Il codice racchiuso nei tag PHP viene
-	quindi eseguito e file_get_contents() legge il contenuto
-	di /etc/natas_webpass/natas14, che viene restituito
-	nella risposta HTTP tramite echo.
+	Accedendo a tale percorso, il server interpreta il file come script
+	PHP.
+	Il codice racchiuso nei tag PHP viene quindi eseguito e
+	file_get_contents() legge il contenuto di /etc/natas_webpass/natas14
+	che viene restituito nella risposta HTTP tramite echo.
 
 
 [+] NOTE
 
-	Il livello 13 dimostra come il riconoscimento della
-	firma binaria di un file non sia sufficiente a garantire
-	la sicurezza di una funzionalità di upload.
+	Il livello 13 dimostra come il riconoscimento della firma binaria di
+	un file non sia sufficiente a garantire la sicurezza di una funzio-
+	nalità di upload.
 
-	La vulnerabilità deriva dalla combinazione di una
-	validazione incompleta del contenuto e della possibilità
-	di controllare l'estensione assegnata al file salvato
-	attraverso un parametro fornito dal client.
+	La vulnerabilità deriva dalla combinazione di una validazione incom-
+	pleta del contenuto e della possibilità di controllare l'estensione
+	assegnata al file salvato attraverso un parametro fornito dal client
 
-	La funzione exif_imagetype() può essere utile per
-	identificare il formato suggerito dalla firma iniziale,
-	ma non garantisce che il file costituisca un'immagine
-	valida o che il contenuto successivo sia coerente con
-	il formato riconosciuto.
+	La funzione exif_imagetype() può essere utile per identificare il
+	formato suggerito dalla firma iniziale, ma non garantisce che il
+	file costituisca un'immagine valida o che il contenuto successivo
+	sia coerente con il formato riconosciuto.
 
-	Allo stesso modo, un campo HTML nascosto non deve essere
-	considerato affidabile, poiché qualsiasi dato trasmesso
-	dal client può essere modificato prima di raggiungere
-	il server.
+	Allo stesso modo, un campo HTML nascosto non deve essere considerato
+	affidabile, poiché qualsiasi dato trasmesso dal client può essere
+	modificato prima di raggiungere il server.
 
-	È inoltre importante distinguere il caricamento di
-	codice PHP dalla sua effettiva esecuzione. La presenza
-	di codice PHP all'interno di un file non comporta
-	automaticamente Remote Code Execution: affinché il
-	codice venga eseguito, il file deve essere raggiungibile
-	attraverso un percorso accessibile e il server web deve
-	essere configurato per sottoporlo all'interprete PHP.
+	È inoltre importante distinguere il caricamento di codice PHP dalla
+	sua effettiva esecuzione.
+	La presenza di codice PHP all'interno di un file non comporta auto-
+	maticamente Remote Code Execution: affinché il codice venga eseguito
+	il file deve essere raggiungibile attraverso un percorso accessibile
+	e il server web deve essere configurato per sottoporlo all'interpre-
+	te PHP.
 
-	Nel laboratorio, la possibilità di controllare
-	l'estensione e di accedere al file caricato permette
-	di soddisfare queste condizioni.
+	Nel laboratorio, la possibilità di controllare l'estensione e di ac-
+	cedere al file caricato permette di soddisfare queste condizioni.
 
-	Per prevenire questa classe di vulnerabilità, è
-	necessario validare i file lato server utilizzando
-	controlli appropriati al formato ammesso, senza affidarsi
-	esclusivamente all'estensione o alla firma iniziale.
+	Per prevenire questa classe di vulnerabilità, è necessario validare
+	i file lato server utilizzando controlli appropriati al formato am-
+	messo, senza affidarsi esclusivamente all'estensione o alla firma
+	iniziale.
+	iniziale.
 
-	Quando possibile, è opportuno verificare e ricostruire
-	il contenuto attraverso una libreria dedicata alla
-	gestione delle immagini, generare sul server un nome
-	e un'estensione coerenti con il formato effettivamente
-	validato e memorizzare gli upload al di fuori della
+	Quando possibile, è opportuno verificare e ricostruire il contenuto
+	attraverso una libreria dedicata alla gestione delle immagini, gene-
+	rare sul server un nome e un'estensione coerenti con il formato ef-
+	fettivamente validato e memorizzare gli upload al di fuori della
 	document root.
 
-	Qualora ciò non sia possibile, la directory destinata
-	ai file caricati dovrebbe essere configurata in modo
-	da impedire l'esecuzione di script.
+	Qualora ciò non sia possibile, la directory destinata ai file cari-
+	cati dovrebbe essere configurata in modo da impedire l'esecuzione di
+	script.
 
-	La lezione principale del livello consiste nel
-	comprendere che la validazione del tipo di file e il
-	controllo della sua esecuzione sono due aspetti distinti.
-	Un file può superare un controllo superficiale sul
-	formato e contenere comunque codice eseguibile.
+	La lezione principale del livello consiste nel comprendere che la
+	validazione del tipo di file e il controllo della sua esecuzione
+	sono due aspetti distinti.
+	Un file può superare un controllo superficiale sul formato e conte-
+	nere comunque codice eseguibile.
 
-	Per questo motivo, la sicurezza di una funzionalità
-	di upload deve basarsi su più controlli indipendenti,
-	applicati esclusivamente lato server.
+	Per questo motivo, la sicurezza di una funzionalità di upload deve
+	basarsi su più controlli indipendenti, applicati esclusivamente lato
+	server.
 
 
 [+] CODICE DI ACCESSO

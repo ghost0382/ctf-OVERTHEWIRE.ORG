@@ -38,3 +38,12 @@
         
 
         
+			Plain XOR Key = Cypher
+			
+			Plain XOR (Plain XOR Key) = Cypher XOR Plain
+			(Plain XOR Plain) XOR Key = Cypher XOR Plain
+			0 XOR Key = Cypher XOR Plain
+			Key = Cypher XOR Plain
+
+			Proprieta': A xor 0 = A
+						A xor (B xor C) = (A xor B) xor C
