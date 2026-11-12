@@ -3,7 +3,7 @@ import string
 from requests.auth import HTTPBasicAuth
 
 basicAuth=HTTPBasicAuth('natas15', 'AwWj0w5cvxrZiONgZ9J5stNVkmxdk39J')
-headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+eaders = {'Content-Type': 'application/x-www-form-urlencoded'}
 
 u="http://natas15.natas.labs.overthewire.org/index.php?debug"
 
